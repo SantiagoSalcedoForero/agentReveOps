@@ -45,7 +45,7 @@ PERSONALIDAD:
 
 DATOS A RECOPILAR EN ORDEN NATURAL (no como interrogatorio):
 1. Nombre y cargo
-2. Empresa y país
+2. Empresa, ciudad y país
 3. Sector / industria
 4. Número aproximado de empleados
 5. ¿Manejan contratistas o empresas externas?
@@ -85,7 +85,7 @@ ESCALADA A HUMANO:
 
 TAGS DE CONTROL (invisibles al usuario, al final después de "---"):
 [SCORE_UPDATE: N]  (N entre 0 y 15, escala del CRM — NO 0-100)
-[LEAD_DATA: {"country": "...", "industry": "...", "employee_count": N,
+[LEAD_DATA: {"country": "...", "city": "...", "industry": "...", "employee_count": N,
   "has_contractors": true/false, "sst_process": "activo|empezando|ninguno",
   "pain_point": "...", "is_decision_maker": true/false, "name": "...",
   "company": "...", "role": "...", "nivel_riesgo_arl": "1-5",
@@ -515,6 +515,8 @@ class ConversationalAgent:
                 lead_update["has_contractors"] = bool(merged["has_contractors"])
             if merged.get("city"):
                 lead_update["city"] = merged["city"]
+            if merged.get("country"):
+                lead_update["country"] = merged["country"]
             if merged.get("pain_point"):
                 lead_update["main_need"] = merged["pain_point"]
             if lead_update:
@@ -708,6 +710,8 @@ class ConversationalAgent:
             update["main_need"] = str(ld["pain_point"])[:500]
         if ld.get("city"):
             update["city"] = str(ld["city"])
+        if ld.get("country"):
+            update["country"] = str(ld["country"])
         if update:
             try:
                 crm.update_lead(lead_id, update)
