@@ -1,0 +1,33 @@
+# Bloque global (debe ir primero)
+{
+    email santiago@verifty.com
+}
+
+bot.verifty.com {
+    encode gzip
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    reverse_proxy bot:8000 {
+        health_uri /health
+        health_interval 30s
+        health_timeout 5s
+
+        transport http {
+            response_header_timeout 300s
+        }
+    }
+
+    log {
+        output file /data/access.log {
+            roll_size 50mb
+            roll_keep 5
+        }
+        format json
+    }
+}
