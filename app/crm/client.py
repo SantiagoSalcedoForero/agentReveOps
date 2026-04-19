@@ -287,6 +287,34 @@ class CRMClient:
         )
         return r.data[0] if r.data else None
 
+    def get_lead_by_phone(self, phone: str) -> Optional[dict]:
+        r = (
+            self.sb.table("leads")
+            .select("id, first_name")
+            .eq("phone", phone)
+            .is_("deleted_at", "null")
+            .limit(1)
+            .execute()
+        )
+        return r.data[0] if r.data else None
+
+    def log_activity(self, phone: str, title: str, body: str = "") -> None:
+        """Crea una actividad en la línea de tiempo del lead buscado por teléfono.
+        Falla silenciosamente si el lead no existe aún.
+        """
+        try:
+            lead = self.get_lead_by_phone(phone)
+            if not lead:
+                return
+            self.create_activity(
+                lead_id=lead["id"],
+                activity_type="note",
+                title=title,
+                body=body,
+            )
+        except Exception as e:
+            logger.warning(f"log_activity failed phone={phone}: {e}")
+
     # ---------- Activities ----------
     def create_activity(
         self, lead_id: str, activity_type: str, title: str, body: str = ""

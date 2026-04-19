@@ -476,6 +476,11 @@ async def landing_gate(payload: LandingGateRequest, request: Request):
     if elapsed is not None and elapsed < OTP_RESEND_COOLDOWN_SECONDS:
         remaining = OTP_RESEND_COOLDOWN_SECONDS - elapsed
         logger.info(f"OTP dedup: phone={phone} — OTP activo, {elapsed}s desde el último. Cooldown restante: {remaining}s")
+        crm.log_activity(
+            phone=phone,
+            title=f"Volvió a intentar descargar «{payload.template_title or payload.template_slug}»",
+            body=f"Ya tenía un código de verificación activo en WhatsApp (enviado hace {elapsed}s). No se generó uno nuevo.",
+        )
         return {
             "gated": True,
             "already_sent": True,
@@ -501,6 +506,12 @@ async def landing_gate(payload: LandingGateRequest, request: Request):
         logger.exception(f"send_otp_template failed: {e}")
         raise HTTPException(502, "No pudimos enviar el código a tu WhatsApp")
 
+    crm.log_activity(
+        phone=phone,
+        title=f"Solicitó descarga de «{payload.template_title or payload.template_slug}»",
+        body=f"Se envió código de verificación por WhatsApp. Razón del gate: {reason}.",
+    )
+
     return {
         "gated": True,
         "message": "Código enviado a tu WhatsApp. Tiene 10 minutos de vigencia.",
@@ -522,6 +533,11 @@ async def landing_verify(payload: LandingVerifyRequest):
 
     ok, otp_row, message = verify_code(phone, code)
     if not ok:
+        crm.log_activity(
+            phone=phone,
+            title="Código de verificación incorrecto o expirado",
+            body=f"El lead ingresó un código inválido en el gate de descarga. Motivo: {message}",
+        )
         return {"ok": False, "message": message}
 
     lead_data = otp_row.get("lead_data") or {}
@@ -605,6 +621,16 @@ async def landing_verify(payload: LandingVerifyRequest):
         logger.exception(f"verify conv setup failed: {e}")
         # Igual devolvemos OK — el download no debe fallar por esto
         conv = None
+
+    # Registrar en línea de tiempo que verificó y descargó
+    crm.log_activity(
+        phone=phone,
+        title=f"Verificó WhatsApp y descargó «{template_title or template_slug}»",
+        body=(
+            f"El lead completó la verificación OTP correctamente y desbloqueó la descarga. "
+            f"El bot le envió el primer mensaje de seguimiento."
+        ),
+    )
 
     # Calcular score inmediatamente con los datos del form
     if lead_id:
