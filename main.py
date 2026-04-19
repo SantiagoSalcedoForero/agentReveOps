@@ -20,6 +20,8 @@ from app.otp.manager import (
     should_gate_download,
     create_otp,
     verify_code,
+    seconds_since_last_otp,
+    OTP_RESEND_COOLDOWN_SECONDS,
 )
 from app.otp.templates_catalog import get_template_meta
 from app.otp.first_message import build_first_message
@@ -466,6 +468,19 @@ async def landing_gate(payload: LandingGateRequest, request: Request):
             "gated": False,
             "template_url": payload.template_url,
             "reason": reason,
+        }
+
+    # Dedup: si ya hay un OTP activo enviado hace menos de OTP_RESEND_COOLDOWN_SECONDS,
+    # no generar otro — el usuario ya tiene el código en su WhatsApp.
+    elapsed = seconds_since_last_otp(phone)
+    if elapsed is not None and elapsed < OTP_RESEND_COOLDOWN_SECONDS:
+        remaining = OTP_RESEND_COOLDOWN_SECONDS - elapsed
+        logger.info(f"OTP dedup: phone={phone} — OTP activo, {elapsed}s desde el último. Cooldown restante: {remaining}s")
+        return {
+            "gated": True,
+            "already_sent": True,
+            "message": f"Ya te enviamos un código a tu WhatsApp. Revísalo o espera {remaining}s para solicitar uno nuevo.",
+            "reason": "otp_cooldown",
         }
 
     # Generar OTP + enviar WhatsApp

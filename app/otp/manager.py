@@ -62,6 +62,34 @@ def _generate_code() -> str:
     return "".join(secrets.choice("0123456789") for _ in range(OTP_LENGTH))
 
 
+OTP_RESEND_COOLDOWN_SECONDS = 120  # mínimo entre OTPs para el mismo teléfono
+
+
+def get_active_otp(phone: str) -> Optional[dict]:
+    """Retorna el OTP más reciente activo (no verificado, no expirado) para este teléfono."""
+    now_iso = datetime.now(timezone.utc).isoformat()
+    r = (
+        crm.sb.table("otp_codes")
+        .select("id, created_at, expires_at, template_slug, template_url")
+        .eq("phone", phone)
+        .is_("verified_at", "null")
+        .gte("expires_at", now_iso)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    return r.data[0] if r.data else None
+
+
+def seconds_since_last_otp(phone: str) -> Optional[int]:
+    """Retorna los segundos transcurridos desde el último OTP activo, o None si no hay."""
+    active = get_active_otp(phone)
+    if not active:
+        return None
+    created = datetime.fromisoformat(str(active["created_at"]).replace("Z", "+00:00"))
+    return int((datetime.now(timezone.utc) - created).total_seconds())
+
+
 def create_otp(
     phone: str,
     lead_data: dict,
