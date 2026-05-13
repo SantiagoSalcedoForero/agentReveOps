@@ -15,6 +15,7 @@ def load_knowledge() -> str:
     files = [
         "product/pricing.md",
         "product/modules.md",
+        "product/verifty_sst.md",
         "product/objection_handling.md",
         "product/icp.md",
         "scoring/rules.md",

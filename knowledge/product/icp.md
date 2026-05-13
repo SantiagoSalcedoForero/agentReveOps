@@ -1,12 +1,22 @@
 # Perfil de Cliente Ideal (ICP)
 
-## Matriz de calificación por tamaño
+## REGLA MAESTRA DE SEGMENTACIÓN
+
+Verifty tiene DOS productos. El bot debe identificar cuál necesita el lead ANTES de intentar
+agendar demo o enviar link de compra.
+
+| Producto | ICP | Acción del bot |
+|----------|-----|----------------|
+| **Verifty SST** | Empresa 5-130 empleados buscando cumplir normativa SST, o profesional/especialista SST | Calificar → [SST_READY] → link de compra (https://sst.verifty.com/planes) |
+| **Verifty Flow** | Empresa grande (+130 emp.) o con muchos contratistas buscando automatizar procesos | Calificar → [BOOKING_READY] → agendar demo |
+
+## Matriz de calificación por tamaño — VERIFTY FLOW
 
 | Tamaño empresa | Trabajadores | Estrategia bot | Plan sugerido |
 |----------------|-------------|----------------|---------------|
-| Micro | < 20 | Calificar duro, ofrecer INDIVIDUAL solo si tiene contratistas o riesgo alto | INDIVIDUAL |
-| Pequeña | 20-100 | Vender directo, mostrar precio ESSENTIAL | EQUIPO / ESSENTIAL |
-| Mediana | 100-500 | Calificar + agendar reu (bot puede cotizar Essential/Advanced) | ESSENTIAL / ADVANCED |
+| Micro | < 20 | Solo Flow si tiene contratistas masivos, sino → evaluar SST | INDIVIDUAL |
+| Pequeña | 20-130 | Verificar si necesitan SST o Flow. Si mencionan contratistas → Flow | EQUIPO / ESSENTIAL |
+| Mediana | 130-500 | Calificar + agendar reu Flow (bot puede cotizar Essential/Advanced) | ESSENTIAL / ADVANCED |
 | Grande | 500-1500 | **Agendar reu sin precios** | BUSINESS |
 | Enterprise | 1500+ | **Agendar reu sin precios** | CORPORATIVO / PLATINUM |
 
@@ -39,11 +49,28 @@
 
 Si el lead es **analista o coordinador SST**, tratar con respeto pero detectar rápido si puede elevarlo al decisor. No cerrar con analistas sin decisor presente.
 
-## Sectores / empresas a las que NO vender
+## ICP — Verifty SST (ver también knowledge/product/verifty_sst.md)
 
-- Empresas < 10 empleados sin contratistas (no justifica la inversión)
-- Empresas 100% administrativas sin riesgo operativo (no es nuestro nicho)
-- Empresas con sistemas SST muy maduros que solo quieren integraciones puntuales (enfocar solo en API)
+### Tipo A: Empresa pequeña (5–130 empleados)
+- Busca cumplir Res. 0312/2019, implementar SG-SST, llevar IPEVR, gestionar accidentes
+- Actualmente lo hace en Excel, papel o sin sistema
+- Tiene vigía SST o responsable SST sin herramienta
+
+### Tipo B: Profesional / Especialista SST
+- Consultor, asesor o profesional SST que gestiona sistemas de uno o varios clientes
+- Busca software para llevar los SG-SST de sus clientes de forma organizada
+- Señales: "soy especialista SST", "asesoro empresas en SST", "llevo el sistema de varios clientes"
+
+### Señales que identifican un lead SST
+- Menciona: SG-SST, COPASST, vigía SST, IPEVR, Res. 0312, accidente laboral, ausentismo
+- Empresa 5-130 empleados buscando "cumplir con SST" o "implementar el sistema"
+- Se presenta como profesional SST, asesor, coordinador o consultor SST
+
+## Segmentos a los que NO aplica ningún producto
+
+- Empresas < 5 empleados sin riesgo (no justifica inversión)
+- Empresas 100% administrativas sin operación de campo ni normativa SST relevante
+- Empresas con sistemas SST muy maduros que solo quieren integraciones puntuales (enfocarse en API)
 
 ## Geografía (mercados atendidos)
 

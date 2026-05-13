@@ -35,22 +35,8 @@ def is_corporate_email(email: str) -> bool:
 
 
 def should_gate_download(lead_data: dict) -> tuple[bool, str]:
-    """Decide si este lead debe pasar por OTP.
-    Retorna (required, reason).
-    Regla del negocio: empleados >= 50 OR email corporativo.
-    """
-    email = (lead_data.get("email") or "").strip()
-    employees_raw = lead_data.get("employee_count") or lead_data.get("employees") or 0
-    try:
-        employees = int(employees_raw)
-    except (ValueError, TypeError):
-        employees = 0
-
-    if employees >= 50:
-        return True, f"employee_count={employees}"
-    if is_corporate_email(email):
-        return True, f"corporate_email={email.split('@')[-1]}"
-    return False, "free_download"
+    """Todos los leads pasan por OTP — verificación universal."""
+    return True, "universal_gate"
 
 
 def _hash_code(code: str, phone: str) -> str:

@@ -41,5 +41,16 @@ class Settings:
     CEO_API_KEY = os.getenv("CEO_API_KEY", "")
     CRON_SECRET = os.getenv("CRON_SECRET", "")
 
+    # Meeting reminders
+    MEETING_REMINDER_TEMPLATE = os.getenv(
+        "MEETING_REMINDER_TEMPLATE", "verifty_meeting_reminder"
+    )
+    MEETING_REMINDER_MINUTES_BEFORE = int(
+        os.getenv("MEETING_REMINDER_MINUTES_BEFORE", "10")
+    )
+    # Email (Resend)
+    RESEND_API_KEY    = os.getenv("RESEND_API_KEY", "")
+    RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "notificaciones@verifty.com")
+
 
 settings = Settings()

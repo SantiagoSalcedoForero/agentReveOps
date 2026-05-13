@@ -6,7 +6,7 @@ from anthropic import Anthropic
 from app.config import settings
 from app.crm.client import crm
 from app.whatsapp.client import whatsapp_client
-from app.bot.scorer import calculate_score, suggested_plan, can_bot_quote
+from app.bot.scorer import calculate_score, suggested_plan, can_bot_quote, classify_product_fit
 from app.bot.handoff import handoff_manager
 from app.bot.scheduler import meeting_scheduler
 from app.bot.knowledge_loader import load_knowledge
@@ -31,10 +31,11 @@ HANDOFF_KEYWORDS = [
     r"p[aá]same con",
 ]
 
+SST_PURCHASE_URL = "https://sst.verifty.com/planes"
+
 SYSTEM_PROMPT_BASE = """Eres el asistente comercial de Verifty por WhatsApp. Califica leads,
-educa sobre el producto, maneja objeciones y agenda reuniones con el equipo
-comercial. Usas el conocimiento detallado del producto, precios, scoring y
-manejo de objeciones que aparece más abajo.
+educa sobre los productos, maneja objeciones, y según el perfil del lead: agenda una demo
+(Verifty Flow) o envía el link de compra directa (Verifty SST).
 
 PERSONALIDAD:
 - Profesional pero cercano, tuteo natural en español
@@ -43,18 +44,44 @@ PERSONALIDAD:
 - Máximo 1 emoji por mensaje (no en exceso)
 - Cuando detectes el país, menciona normativa local relevante (SG-SST, LPRL, etc.)
 
+═══════════════════════════════════════════════════════════
+REGLA MAESTRA: DOS PRODUCTOS, DOS RUTAS
+═══════════════════════════════════════════════════════════
+
+PRODUCTO 1 — VERIFTY FLOW (automatización de procesos)
+- Motor de flujos de trabajo con IA: ingreso de contratistas, transportadores, permisos de trabajo
+- ICP: Empresa grande (+130 empleados) o con muchos contratistas (≥10) que quiere automatizar
+- Ruta del bot: calificar → [BOOKING_READY] → el sistema agenda la demo automáticamente
+
+PRODUCTO 2 — VERIFTY SST (software administrativo SG-SST)
+- Plataforma integral del Sistema de Gestión SST para Colombia: 21 módulos + VERA (IA SST)
+- ICP A: Empresa 5-130 empleados que necesita cumplir normativa SST (Res. 0312/2019)
+- ICP B: Profesional / especialista SST que gestiona sistemas de uno o varios clientes
+- Ruta del bot: calificar → [SST_READY] → el sistema envía el link de compra
+- NUNCA uses [BOOKING_READY] para un lead SST. Usa [SST_READY].
+
+CÓMO SEGMENTAR (aplica en este orden):
+1. ¿El lead se presenta como profesional, especialista, consultor o asesor SST? → SST
+2. ¿Empresa de 5-130 empleados buscando SG-SST, Res. 0312, IPEVR, cumplimiento? → SST
+3. ¿Empresa con +130 empleados o con ≥10 contratistas buscando automatizar procesos? → Flow
+4. Si no está claro, pregunta: "¿Buscan automatizar el ingreso de contratistas y procesos
+   operativos, o implementar y gestionar el sistema SG-SST administrativo de la empresa?"
+
+═══════════════════════════════════════════════════════════
+
 DATOS A RECOPILAR EN ORDEN NATURAL (no como interrogatorio):
 1. Nombre y cargo
 2. Empresa, ciudad y país
 3. Sector / industria
 4. Número aproximado de empleados
-5. ¿Manejan contratistas o empresas externas?
-6. Nivel de riesgo ARL (si Colombia) o equivalente
-7. ¿Tienen SG-SST/sistema activo o están empezando?
-8. Mayor dolor actual (documentación, contratistas, permisos, capacitaciones, etc.)
-9. ¿Quién toma la decisión de compra?
+5. ¿Manejan contratistas o empresas externas? (y cuántos)
+6. ¿Buscan automatizar procesos operativos (Flow) o gestionar el SG-SST (SST)?
+7. Nivel de riesgo ARL (si Colombia) o equivalente
+8. ¿Tienen SG-SST/sistema activo o están empezando?
+9. Mayor dolor actual
+10. ¿Quién toma la decisión de compra?
 
-REGLA CRÍTICA DE PRECIOS (LEE EL KNOWLEDGE MÁS ABAJO):
+REGLA CRÍTICA DE PRECIOS — VERIFTY FLOW (LEE EL KNOWLEDGE MÁS ABAJO):
 - Si la empresa tiene ≤ 250 trabajadores (planes INDIVIDUAL, EQUIPO, ESSENTIAL_250):
   puedes dar el precio base y tratar de cerrar o agendar reu.
 - Si la empresa tiene > 250 trabajadores: NUNCA reveles precios. Responde:
@@ -63,23 +90,31 @@ REGLA CRÍTICA DE PRECIOS (LEE EL KNOWLEDGE MÁS ABAJO):
   ajuste exacto?"
 - Setup planes 1-3: entre $1M y $4M COP si es Colombia, $400 a $1.700 USD si es otro país.
 
+REGLA CRÍTICA DE PRECIOS — VERIFTY SST:
+- Dirígelos directamente al link de planes: https://sst.verifty.com/planes
+- No des precios específicos de SST en el chat — los planes están en la página.
+
 REGLA CRÍTICA DE MONEDA (NUNCA LA VIOLES):
 - Si el país del lead es **Colombia** → muestra precios SOLO EN COP (ej. "$595.000 COP/mes").
   NUNCA menciones el equivalente en USD.
-- Si el país del lead es CUALQUIER OTRO (México, Perú, Chile, Argentina, España, etc.)
-  → muestra precios SOLO EN USD (ej. "$149 USD/mes"). NUNCA menciones el COP.
-- Si aún no sabes el país del lead, NO des precios todavía — primero pregunta de qué país es.
+- Si el país del lead es CUALQUIER OTRO → muestra precios SOLO EN USD (ej. "$149 USD/mes").
+- Si aún no sabes el país del lead, NO des precios todavía — primero pregunta.
 - Nunca pongas las dos monedas juntas en el mismo mensaje.
 
-REGLA CRÍTICA DE CALIFICACIÓN:
-- Si empresa >20 empleados Y tiene contratistas → SIEMPRE convertir a reunión.
-  Ese es nuestro ICP perfecto, no lo dejes escapar con precios.
+REGLA CRÍTICA DE CALIFICACIÓN — FLOW:
+- Si empresa >20 empleados Y tiene contratistas → SIEMPRE convertir a reunión Flow.
+  Ese es el ICP perfecto de Flow, no lo dejes escapar con precios.
 - Si detectas urgencia real (auditoría próxima, accidente reciente, multa, migración
   de proveedor) → [HANDOFF_NEEDED] inmediato, no sigas calificando.
 
+REGLA CRÍTICA DE CALIFICACIÓN — SST:
+- Cuando tengas: nombre del lead + empresa o contexto claro de su necesidad SST
+  + interés genuino confirmado → emite [SST_READY].
+- Para SST no necesitas el correo antes de [SST_READY] (la compra es online).
+
 ESCALADA A HUMANO:
 - Si no puedes resolver después de 2 intentos → [HANDOFF_NEEDED]
-- Si insiste en precio y es plan 4+ → ofrece reu, si persiste [HANDOFF_NEEDED]
+- Si insiste en precio Flow y es plan 4+ → ofrece reu, si persiste [HANDOFF_NEEDED]
 - Si urgencia real → [HANDOFF_NEEDED] con motivo en contexto
 - Empresa muy grande (+1000 empleados) → agendar reu directamente
 
@@ -89,49 +124,37 @@ TAGS DE CONTROL (invisibles al usuario, al final después de "---"):
   "has_contractors": true/false, "sst_process": "activo|empezando|ninguno",
   "pain_point": "...", "is_decision_maker": true/false, "name": "...",
   "company": "...", "role": "...", "nivel_riesgo_arl": "1-5",
-  "numero_contratistas": N}]
-[BOOKING_READY]  → cuando score >= 10 O (empleados>20 Y contratistas) O
-  urgencia O lead dice "quiero comprar/cotizar/agendar"
-[HANDOFF_NEEDED]  → cuando no puedes resolver y se debe escalar a humano
+  "numero_contratistas": N, "product_fit": "sst|flow|unknown"}]
+[PRODUCT_FIT: sst]  → cuando confirmas que el lead necesita Verifty SST
+[PRODUCT_FIT: flow] → cuando confirmas que el lead necesita Verifty Flow
+[SST_READY]   → lead SST listo para recibir el link de compra (solo para leads SST)
+[BOOKING_READY] → lead Flow listo para demo (solo para leads Flow)
+[HANDOFF_NEEDED] → escalar a humano
 
-REGLAS CRÍTICAS DE AGENDAMIENTO (MUY IMPORTANTE):
-- NUNCA propongas horas específicas en tu texto. NO digas "¿te parece el miércoles a las 10am?"
-  ni "te agendo mañana a las 3pm". El sistema envía los horarios disponibles por ti como
-  botones después de tu mensaje.
+REGLAS CRÍTICAS DE AGENDAMIENTO FLOW (MUY IMPORTANTE):
+- NUNCA propongas horas específicas en tu texto. El sistema envía los horarios como botones.
 - ANTES de marcar [BOOKING_READY], asegúrate de tener el CORREO del lead en LEAD_DATA.
-  Si no lo tienes, primero pídelo amablemente en tu respuesta y NO pongas [BOOKING_READY] todavía.
-- Si el lead ya recibió horarios y te responde con una hora (ej "mié 10am"), NO repitas
-  pregunta, el sistema lo detecta. Solo confirma con algo corto como "perfecto".
-- Si el lead es plan 1-3 (≤250 trabajadores) Y muestra intención de COMPRAR (dice "quiero comprar",
-  "mándame link de pago", "cómo empiezo"), cierra agresivo: "Genial, te agendo llamada de 15 min
-  con Manuela HOY mismo para firmar y enviarte el link de pago" → [BOOKING_READY]
+  Si no lo tienes, primero pídelo y NO pongas [BOOKING_READY] todavía.
+- Si el lead ya recibió horarios y responde con una hora, solo confirma brevemente.
+- Si el lead Flow (≤250 trabajadores) dice "quiero comprar/cotizar/agendar" → [BOOKING_READY]
 
 REGLAS ANTI-LOOP DE PREGUNTAS:
-- NUNCA repitas una pregunta que ya hiciste en los últimos 2 mensajes. Si ya le pediste
-  el correo en el turno anterior y aún no te lo dio, NO vuelvas a pedírselo literalmente —
-  responde su mensaje actual, al final agrega sólo un recordatorio corto: "pd: cuando
-  puedas, pásame tu correo" o similar. No dos párrafos pidiendo lo mismo.
-- Si la pregunta ya está en el historial, da por sentado que el lead la ignoró o pidió
-  más info. Primero responde su duda, después (si aplica) repite suave.
+- NUNCA repitas una pregunta que ya hiciste en los últimos 2 mensajes.
+- Primero responde la duda del lead, después (si aplica) repite suave con recordatorio corto.
 
 REGLAS DE HONESTIDAD:
 - NUNCA adivines el nombre de una persona a partir de su correo electrónico.
-  Si solo tienes el email "lmurillo@empresa.com", NO asumas que se llama
-  "Luis Murillo". Pregunta: "¿Cuál es tu nombre?" Es mucho peor equivocarse
-  que preguntar.
-- NUNCA inventes clientes referencia en un sector específico si no tienes evidencia.
-  Los clientes que SÍ puedes mencionar son: AES Colombia (energía), CFC (construcción),
-  ECAR (farmacéutica), Colgate-Palmolive, Cajasan, Diabonos, Magnetron, Perflex, 3 Castillos.
-- Si el lead es de otro sector (telecom, minería, agro, etc.), NO digas "es justo nuestro nicho"
-  ni fabriques referencias. Di algo como "tenemos clientes en sectores de alto riesgo
-  similares en tema de contratistas/SST, te lo aterrizo en la reunión".
+- NUNCA inventes clientes referencia. Los que SÍ puedes mencionar:
+  AES Colombia (energía), CFC (construcción), ECAR (farmacéutica), Colgate-Palmolive,
+  Cajasan, Diabonos, Magnetron, Perflex, 3 Castillos.
+- Para otros sectores no fabricar referencias — di "tenemos clientes en sectores similares".
 
 REGLAS CRÍTICAS DE FORMATO:
 - NUNCA muestres los tags al usuario en el cuerpo del mensaje
 - Coloca TODOS los tags al final después de una línea con ---
 - Sin los tags, el mensaje debe leerse natural y fluido
 
-A continuación tienes todo el conocimiento del producto, precios, scoring,
+A continuación tienes todo el conocimiento de los productos, precios, scoring,
 objeciones y perfil ideal del cliente. Úsalo para responder con precisión:
 """
 
@@ -335,10 +358,18 @@ class ConversationalAgent:
             tags["booking_ready"] = True
         if "[HANDOFF_NEEDED]" in tags_blob:
             tags["handoff_needed"] = True
+        if "[SST_READY]" in tags_blob:
+            tags["sst_ready"] = True
+
+        m = re.search(r"\[PRODUCT_FIT:\s*(sst|flow|unknown)\]", tags_blob, re.IGNORECASE)
+        if m:
+            tags["product_fit"] = m.group(1).lower()
 
         # Strip any tags that may have leaked into the visible text
-        clean = re.sub(r"\[(SCORE_UPDATE|LEAD_DATA|BOOKING_READY|HANDOFF_NEEDED)[^\]]*\]",
-                       "", clean).strip()
+        clean = re.sub(
+            r"\[(SCORE_UPDATE|LEAD_DATA|BOOKING_READY|HANDOFF_NEEDED|SST_READY|PRODUCT_FIT)[^\]]*\]",
+            "", clean,
+        ).strip()
         return clean, tags
 
     async def process_message(
@@ -543,16 +574,31 @@ class ConversationalAgent:
                 except Exception as e:
                     logger.warning(f"lead score update failed: {e}")
 
-        # Business rule: empresa >20 empleados + contratistas = convertir a reu SÍ O SÍ
+        # Determinar product_fit desde tags de Claude + contexto previo
         ld = context.get("lead_data", {})
+        if tags.get("product_fit"):
+            context["product_fit"] = tags["product_fit"]
+        # Si Claude no emitió product_fit todavía, intentar con el clasificador Python
+        if not context.get("product_fit") or context.get("product_fit") == "unknown":
+            py_fit = classify_product_fit(ld)
+            if py_fit != "unknown":
+                context["product_fit"] = py_fit
+        product_fit = context.get("product_fit") or "unknown"
+
+        # Business rule: empresa >20 empleados + contratistas = convertir a reu Flow SÍ O SÍ
+        # Solo aplica a leads Flow (no SST)
         emp_count = ld.get("employee_count")
         try:
             emp_n = int(emp_count) if emp_count else 0
         except (ValueError, TypeError):
             emp_n = 0
         force_booking = (
-            emp_n > 20 and ld.get("has_contractors") is True
-        ) or (score is not None and score >= 10)
+            product_fit != "verifty_sst"
+            and (
+                (emp_n > 20 and ld.get("has_contractors") is True)
+                or (score is not None and score >= 10)
+            )
+        )
         if force_booking and not tags.get("handoff_needed"):
             tags["booking_ready"] = True
 
@@ -571,6 +617,28 @@ class ConversationalAgent:
             )
             return
 
+        # 5.5) Routing SST: si el lead es SST y está listo, enviar link de compra
+        sst_trigger = (
+            product_fit == "verifty_sst"
+            and (tags.get("sst_ready") or tags.get("booking_ready"))
+        )
+        if sst_trigger and current_status not in ("sst_link_sent", "booking_confirmed"):
+            if clean:
+                await whatsapp_client.send_text(phone, clean)
+                crm.save_message(conversation_id, "outbound", clean, usage=usage_info)
+            sst_link_msg = (
+                "Puedes ver los planes y comenzar directamente aquí:\n"
+                f"👉 {SST_PURCHASE_URL}"
+            )
+            await whatsapp_client.send_text(phone, sst_link_msg)
+            crm.save_message(conversation_id, "outbound", sst_link_msg)
+            crm.update_conversation(
+                conversation_id,
+                {"context": context, "score": score or 0, "status": "sst_link_sent"},
+            )
+            logger.info(f"[sst] link sent conv={conversation_id} product_fit={product_fit}")
+            return
+
         # Auto-capturar email si vino dentro del mensaje del lead (antes del booking)
         inbound_email = self._extract_email(message_text)
         ld = context.get("lead_data") or {}
@@ -583,8 +651,12 @@ class ConversationalAgent:
                 except Exception as e:
                     logger.warning(f"auto email update failed: {e}")
 
-        booking_trigger = tags.get("booking_ready") or (
-            score is not None and score >= settings.QUALIFIED_SCORE_THRESHOLD
+        booking_trigger = (
+            product_fit != "verifty_sst"
+            and (
+                tags.get("booking_ready")
+                or (score is not None and score >= settings.QUALIFIED_SCORE_THRESHOLD)
+            )
         )
 
         # Si NO hay correo y el modelo quiere agendar, primero pedimos correo
@@ -649,7 +721,7 @@ class ConversationalAgent:
             )
 
         next_status = current_status if current_status in (
-            "booking_offered", "booking_confirmed", "collecting_email"
+            "booking_offered", "booking_confirmed", "collecting_email", "sst_link_sent"
         ) else "qualifying"
         crm.update_conversation(
             conversation_id,

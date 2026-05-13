@@ -201,6 +201,16 @@ class CRMClient:
         )
         if existing.data:
             return existing.data[0]
+        # Fallback: algunos leads fueron guardados con '+' como prefijo
+        existing_plus = (
+            self.sb.table("leads")
+            .select("*")
+            .eq("phone", "+" + phone)
+            .limit(1)
+            .execute()
+        )
+        if existing_plus.data:
+            return existing_plus.data[0]
 
         first = (wa_name or "Lead WhatsApp").split(" ")[0]
         last_parts = (wa_name or "").split(" ")[1:]
@@ -271,8 +281,9 @@ class CRMClient:
                 if val:
                     row[key] = val
 
-        new = self.sb.table("leads").insert(row).execute()
-        return new.data[0]
+        self.sb.table("leads").insert(row).execute()
+        fetched = self.sb.table("leads").select("*").eq("phone", phone).limit(1).execute()
+        return fetched.data[0]
 
     def update_lead(self, lead_id: str, fields: dict) -> None:
         self.sb.table("leads").update(fields).eq("id", lead_id).execute()

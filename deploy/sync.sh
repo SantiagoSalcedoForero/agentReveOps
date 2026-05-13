@@ -12,9 +12,10 @@ fi
 
 TARGET="$1"
 REMOTE_DIR="/home/ubuntu/verifty-bot"
+SSH_KEY="${SSH_KEY:-$HOME/.ssh/oci_verifty_bot}"
 
 echo "→ Subiendo código a $TARGET:$REMOTE_DIR"
-rsync -avz --delete \
+RSYNC_RSH="ssh -i $SSH_KEY" rsync -avz --delete \
   --exclude '.venv' \
   --exclude '__pycache__' \
   --exclude '.git' \
@@ -24,9 +25,9 @@ rsync -avz --delete \
   ./ "$TARGET:$REMOTE_DIR/"
 
 echo "→ Rebuild + restart remoto"
-ssh "$TARGET" "cd $REMOTE_DIR && docker compose up -d --build"
+ssh -i "$SSH_KEY" "$TARGET" "cd $REMOTE_DIR && docker compose up -d --build"
 
 echo "→ Logs:"
-ssh "$TARGET" "cd $REMOTE_DIR && docker compose logs --tail=30 bot"
+ssh -i "$SSH_KEY" "$TARGET" "cd $REMOTE_DIR && docker compose logs --tail=30 bot"
 
 echo "✅ Listo"

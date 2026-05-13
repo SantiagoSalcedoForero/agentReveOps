@@ -541,3 +541,66 @@ def suggested_plan(lead_data: dict) -> str:
 def can_bot_quote(plan: str) -> bool:
     """Only first 3 plans: bot reveals price and tries to close."""
     return plan in {"INDIVIDUAL", "EQUIPO", "ESSENTIAL_250"}
+
+
+# ---------------------------------------------------------------------------
+# Product fit classifier
+# ---------------------------------------------------------------------------
+
+_SST_ROLE_KEYWORDS: tuple[str, ...] = (
+    "profesional sst", "especialista sst", "consultor sst", "coordinador sst",
+    "asesor sst", "auditor sst", "responsable sst", "gestor sst",
+    "professional sst", "especialista en sst", "consultor en sst",
+)
+
+_SST_PAIN_KEYWORDS: tuple[str, ...] = (
+    "sg-sst", "sgsst", "sistema de gestion", "normatividad sst",
+    "resolucion 0312", "resolución 0312", "decreto 1072",
+    "cumplimiento sst", "vigia sst", "vigía sst", "copasst",
+    "ipevr", "ausentismo", "accidente laboral", "salud ocupacional",
+    "examenes medicos", "exámenes médicos", "plan anual de trabajo",
+)
+
+
+def classify_product_fit(lead_data: dict) -> str:
+    """Classifica si el lead es para 'verifty_sst', 'verifty_flow' o 'unknown'.
+
+    Reglas (en orden de prioridad):
+    1. Profesional/especialista SST → sst
+    2. Empresa 5-130 empleados sin contratistas masivos → sst
+    3. Empresa >130 empleados o con ≥10 contratistas → flow
+    4. Señales de dolor SST sin contratistas → sst
+    5. Sin datos suficientes → unknown
+    """
+    emp = _parse_employees_range(
+        lead_data.get("employees_range")
+        or lead_data.get("employee_count")
+        or lead_data.get("numero_trabajadores")
+        or lead_data.get("empleados")
+    )
+    role = _norm(lead_data.get("role") or lead_data.get("job_title") or "")
+    pain = _norm(lead_data.get("pain_point") or lead_data.get("main_need") or "")
+
+    is_sst_professional = any(kw in role or kw in pain for kw in _SST_ROLE_KEYWORDS)
+    if is_sst_professional:
+        return "verifty_sst"
+
+    has_contractors = lead_data.get("has_contractors") is True
+    num_cont = _parse_contractors_range(
+        lead_data.get("num_contractors_range")
+        or lead_data.get("numero_contratistas")
+        or lead_data.get("num_contratistas")
+    )
+    heavy_contractors = has_contractors and num_cont >= 10
+
+    if emp > 0:
+        if emp > 130 or heavy_contractors:
+            return "verifty_flow"
+        if 5 <= emp <= 130 and not heavy_contractors:
+            return "verifty_sst"
+
+    has_sst_pain = any(kw in pain for kw in _SST_PAIN_KEYWORDS)
+    if has_sst_pain and not heavy_contractors:
+        return "verifty_sst"
+
+    return "unknown"

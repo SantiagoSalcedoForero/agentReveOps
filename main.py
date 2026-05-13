@@ -31,6 +31,7 @@ from app.outbound.manager import (
     schedule_nudge,
 )
 from app.outbound.scheduler import run_scheduler_loop
+from app.reminders.meeting import send_meeting_reminders
 from app.chat.manager import (
     close_conversation,
     reopen_conversation,
@@ -882,3 +883,17 @@ async def on_startup():
     )
     # Background loop para procesar nudges pendientes
     asyncio.create_task(run_scheduler_loop())
+    # Background loop para recordatorios de reuniones (cada 60s)
+    asyncio.create_task(_meeting_reminder_loop())
+
+
+async def _meeting_reminder_loop():
+    """Cada 60 s revisa si hay reuniones en los próximos 10 min y envía recordatorios."""
+    while True:
+        try:
+            sent = await send_meeting_reminders()
+            if sent:
+                logger.info(f"[reminder-loop] Recordatorios enviados: {sent}")
+        except Exception as e:
+            logger.error(f"[reminder-loop] Error: {e}")
+        await asyncio.sleep(60)

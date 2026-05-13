@@ -16,6 +16,26 @@ logger = get_logger(__name__)
 LOST_TIMEOUT_MINUTES = 60  # marcar como perdido después de 60 min con agentes online
 
 
+def _normalize_phone(raw: str) -> str:
+    """Normaliza a E.164 sin '+'. Corrige 5757... (doble código país Colombia)."""
+    if not raw:
+        return ""
+    digits = "".join(ch for ch in raw if ch.isdigit())
+    if not digits:
+        return ""
+    # Doble código Colombia: 5757... → quitar el primero
+    if digits.startswith("5757"):
+        digits = digits[2:]
+    # Si ya tiene código de país y tiene longitud válida, devolver tal cual
+    country_prefixes = ("57", "52", "54", "34", "51", "56", "593", "591", "507", "1")
+    if any(digits.startswith(p) for p in country_prefixes) and len(digits) >= 10:
+        return digits
+    # 10 dígitos sin prefijo → asumir Colombia
+    if len(digits) == 10:
+        return "57" + digits
+    return digits
+
+
 # ─────────────────────── Smart Routing ───────────────────────
 
 def get_available_agents() -> list[dict]:
@@ -212,6 +232,10 @@ async def initiate_chat(
 
     if not phone:
         raise ValueError("No phone number found for this lead/contact")
+
+    phone = _normalize_phone(phone)
+    if not phone or len(phone) < 10:
+        raise ValueError(f"Teléfono inválido o no normalizable: {phone!r}")
 
     # Obtener nombre del agente para el template
     agent_name = "nuestro equipo"

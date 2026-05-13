@@ -10,3 +10,4 @@ google-auth==2.34.0
 google-auth-oauthlib==1.2.1
 google-api-python-client==2.143.0
 pytz==2024.1
+resend==2.4.0
