@@ -3,6 +3,7 @@ import asyncio
 from datetime import datetime, timezone
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.logger import get_logger
@@ -39,11 +40,29 @@ from app.chat.manager import (
 )
 from app.chat.survey import handle_survey_response, RATING_MAP
 from app.ceo.router import router as ceo_router
+from app.webchat.router import router as webchat_router
 
 logger = get_logger("main")
 
 app = FastAPI(title="Verifty WhatsApp Bot", version="1.0.0")
+
+# CORS: permite requests desde los dominios de Verifty (website y SST app)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://verifty.com",
+        "https://www.verifty.com",
+        "https://sst.verifty.com",
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ],
+    allow_origin_regex=r"https://.*\.vercel\.app",  # previews de Vercel
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
+
 app.include_router(ceo_router)
+app.include_router(webchat_router)
 
 # Per-conversation queues to serialize processing while user keeps typing
 _conv_queues: dict[str, asyncio.Queue] = {}

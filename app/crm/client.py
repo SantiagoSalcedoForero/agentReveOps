@@ -405,5 +405,71 @@ class CRMClient:
         r = self.sb.table("calendar_events").insert(payload).execute()
         return r.data[0]
 
+    # ---------- Webchat sessions ----------
+    def get_or_create_webchat_session(self, session_id: str) -> dict:
+        """Busca o crea una conversación de webchat por session_id (UUID del cliente)."""
+        import uuid as _uuid
+        # Validar que sea un UUID válido
+        try:
+            _uuid.UUID(session_id)
+        except ValueError:
+            raise ValueError(f"session_id inválido: {session_id}")
+
+        existing = (
+            self.sb.table("whatsapp_conversations")
+            .select("*")
+            .eq("session_id", session_id)
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            return existing.data[0]
+
+        new = (
+            self.sb.table("whatsapp_conversations")
+            .insert({
+                "session_id": session_id,
+                "channel": "webchat",
+                "status": "active",
+                "context": {"bot_retries": 0},
+                "final_score": 0,
+            })
+            .execute()
+        )
+        return new.data[0]
+
+    def get_webchat_session(self, session_id: str) -> Optional[dict]:
+        """Obtiene una conversación de webchat por session_id."""
+        r = (
+            self.sb.table("whatsapp_conversations")
+            .select("*")
+            .eq("session_id", session_id)
+            .eq("channel", "webchat")
+            .limit(1)
+            .execute()
+        )
+        return r.data[0] if r.data else None
+
+    def get_webchat_message_history(
+        self, conversation_id: str, limit: int = 50
+    ) -> list[dict]:
+        """Historial de mensajes de webchat con shape {role, text, sent_at}."""
+        r = (
+            self.sb.table("whatsapp_messages")
+            .select("role, content, sent_at")
+            .eq("conversation_id", conversation_id)
+            .order("sent_at", desc=False)
+            .limit(limit)
+            .execute()
+        )
+        return [
+            {
+                "role": m["role"],   # "user" | "bot" | "agent"
+                "text": m["content"] or "",
+                "sent_at": m["sent_at"],
+            }
+            for m in (r.data or [])
+        ]
+
 
 crm = CRMClient()

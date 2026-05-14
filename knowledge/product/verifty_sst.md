@@ -45,14 +45,15 @@ los módulos, responder preguntas normativas y apoyar la gestión del sistema.
 
 | Plan | Precio | Empleados | Cuentas | Almacenamiento | Para quién |
 |------|--------|-----------|---------|----------------|------------|
-| **FREE** | Gratis | 3 | 1 | 250 MB | Probar la plataforma |
-| **STARTER** | $220.000 COP/mes | 7 | 3 | 3 GB | Microempresas 4-7 empleados |
+| **BASIC** | $39.000 COP/mes | 4 | 1 | 250 MB | Empresas hasta 4 trabajadores |
+| **STARTER** | $220.000 COP/mes | 7 | 3 | 3 GB | Microempresas 5-7 empleados |
 | **PRO** ⭐ más popular | $600.000 COP/mes | 30 | 20 | 15 GB | Empresas 8-30 empleados |
 | **PLUS** | $1.220.000 COP/mes | 80 | 50 | 50 GB | Empresas 31-80 empleados |
-| **CORPORATIVO** | Precio personalizado | Hasta 9.999 | 10.009 | 977 GB | Empresas 80+ empleados |
+| **CORPORATIVO** | Precio personalizado | Ilimitado | Ilimitado | Ilimitado | Empresas 80+ empleados |
 
 ### Cómo recomendar el plan según empleados
-- 1-7 empleados → STARTER ($220.000/mes) — arranca con lo básico
+- 1-4 empleados → BASIC ($39.000/mes) — primer paso de cumplimiento SST
+- 5-7 empleados → STARTER ($220.000/mes) — accidentes, ausentismo, capacitaciones
 - 8-30 empleados → PRO ($600.000/mes) — el más popular, incluye IPEVR y módulos avanzados
 - 31-80 empleados → PLUS ($1.220.000/mes) — multi-sede, hasta 10 centros de trabajo
 - 80+ empleados → CORPORATIVO — precio personalizado, API + SSO
@@ -60,18 +61,19 @@ los módulos, responder preguntas normativas y apoyar la gestión del sistema.
 ### Módulos por plan
 | Plan | Módulos incluidos |
 |------|-------------------|
-| **FREE** | Empleados, EPP básico, Formularios, Planes de Acción, Inspecciones, Reportes actos/condiciones |
-| **STARTER** | FREE + Caminatas de seguridad, Accidentes e Incidentes, Ausentismo, Capacitaciones, Cronograma, Sociodemográfico |
-| **PRO** | STARTER + Matriz IPEVR (GTC-45), Programas SST, Salud Ocupacional, Gestor Documental avanzado, Objetivos e Indicadores, PAT |
-| **PLUS** | PRO + múltiples centros de trabajo (hasta 10) + módulos avanzados |
-| **CORPORATIVO** | Todos los módulos + API + SSO empresarial, límites a medida |
+| **BASIC** | Empleados (hasta 4), EPP básico, Formularios, Planes de Acción, Inspecciones, Reportes actos/condiciones, Gestor Documental (250 MB), Cronograma |
+| **STARTER** | BASIC + Caminatas de seguridad, Accidentes e Incidentes, Ausentismo, Capacitaciones, Perfil Sociodemográfico, Importar Excel, Dashboard avanzado |
+| **PRO** | STARTER + Matriz IPEVR (GTC-45), Programas SST, Salud Ocupacional y exámenes médicos, Objetivos e Indicadores SST, Reportes ejecutivos para gerencia |
+| **PLUS** | PRO + Auditorías internas (ISO 45001), Matriz de requisitos legales, Gestión de contratistas, hasta 10 centros de trabajo |
+| **CORPORATIVO** | Todo lo de PLUS + empleados y sedes ilimitados, API para integraciones, SSO empresarial, implementación y soporte dedicado |
 
 Ver planes completos en: **https://sst.verifty.com/planes**
 
 ### Pitch de cierre por tamaño de empresa
+- "Para tus 3 empleados, el plan Basic son $39.000/mes — menos que un café diario para estar cumpliendo con la normativa."
 - "Para tus 15 empleados, el plan PRO son $600.000/mes — menos de lo que cuesta una multa del Mintrabajo."
 - "Con 45 empleados necesitas el PLUS — $1.220.000/mes y tienes el SG-SST completo con multi-sede."
-- "Empieza con el FREE gratis, y cuando quieras el SG-SST completo subes al plan que necesites."
+- "Con 80+ empleados armamos una propuesta a la medida — pídeme que te conecte con el equipo."
 
 ---
 

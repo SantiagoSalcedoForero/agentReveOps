@@ -19,6 +19,11 @@ def load_knowledge() -> str:
         "product/objection_handling.md",
         "product/icp.md",
         "scoring/rules.md",
+        # SST — conocimiento detallado de módulos y add-on VERA
+        "product/sst/modulos.md",
+        "product/sst/vera_addon.md",
+        # VERA web — manual de asesora comercial y aprendizajes
+        "vera/sales_advisor.md",
     ]
     for rel in files:
         p = KNOWLEDGE_ROOT / rel
