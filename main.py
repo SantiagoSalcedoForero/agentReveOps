@@ -18,7 +18,6 @@ from app.models.webhook import (
     LeadIntentRequest,
 )
 from app.otp.manager import (
-    should_gate_download,
     create_otp,
     verify_code,
     seconds_since_last_otp,
@@ -433,9 +432,9 @@ def _normalize_phone(raw: str) -> str:
 
 @app.post("/landing/gate")
 async def landing_gate(payload: LandingGateRequest, request: Request):
-    """Paso 1 del gate: recibe el form, decide si requiere OTP.
-    - Si NO requiere (empresa pequeña + email personal): responde con la URL directa.
-    - Si SÍ requiere: genera OTP, lo envía por WhatsApp (template) y pide verificación.
+    """Paso 1 del gate: recibe el form, genera OTP y lo envía por WhatsApp.
+    Todos los usuarios pasan por verificación OTP sin excepción.
+    Responde siempre { gated: true, message, reason, already_sent? }.
     """
     phone = _normalize_phone(payload.phone)
     if not phone or len(phone) < 10:
@@ -462,33 +461,7 @@ async def landing_gate(payload: LandingGateRequest, request: Request):
         "conversion_trigger": "landing_download",
     }
 
-    gated, reason = should_gate_download(lead_data)
-    logger.info(
-        f"Landing gate: phone={phone} template={payload.template_slug} "
-        f"gated={gated} reason={reason}"
-    )
-
-    if not gated:
-        # Lead pequeño/personal: descarga directa, sin OTP.
-        # Guardamos el lead igualmente (marketing puede hacer nurturing).
-        try:
-            crm.get_or_create_lead(
-                phone=phone,
-                wa_name=lead_data.get("name"),
-                attribution={
-                    **{k: v for k, v in attribution.items() if v},
-                    "utm_content": (payload.template_slug
-                                    if not attribution.get("utm_content")
-                                    else attribution["utm_content"]),
-                },
-            )
-        except Exception as e:
-            logger.warning(f"Could not save non-gated lead: {e}")
-        return {
-            "gated": False,
-            "template_url": payload.template_url,
-            "reason": reason,
-        }
+    logger.info(f"Landing gate: phone={phone} template={payload.template_slug}")
 
     # Dedup: si ya hay un OTP activo enviado hace menos de OTP_RESEND_COOLDOWN_SECONDS,
     # no generar otro — el usuario ya tiene el código en su WhatsApp.
@@ -529,13 +502,13 @@ async def landing_gate(payload: LandingGateRequest, request: Request):
     crm.log_activity(
         phone=phone,
         title=f"Solicitó descarga de «{payload.template_title or payload.template_slug}»",
-        body=f"Se envió código de verificación por WhatsApp. Razón del gate: {reason}.",
+        body="Se envió código de verificación por WhatsApp.",
     )
 
     return {
         "gated": True,
         "message": "Código enviado a tu WhatsApp. Tiene 10 minutos de vigencia.",
-        "reason": reason,
+        "reason": "universal_gate",
     }
 
 
