@@ -32,6 +32,7 @@ from app.outbound.manager import (
 )
 from app.outbound.scheduler import run_scheduler_loop
 from app.reminders.meeting import send_meeting_reminders
+from app.reminders.followup import send_pending_followups
 from app.chat.manager import (
     close_conversation,
     reopen_conversation,
@@ -355,10 +356,11 @@ async def _ingest_message(msg: dict, wa_name: str | None):
         body=text,
         wa_message_id=wa_message_id,
     )
-    # Actualizar last_message_at para ordenar el inbox
+    # Actualizar last_message_at y detener seguimientos automáticos (lead respondió)
     try:
         crm.sb.table("whatsapp_conversations").update({
             "last_message_at": datetime.now(timezone.utc).isoformat(),
+            "followup_stopped": True,
         }).eq("id", conv["id"]).execute()
     except Exception:
         pass
@@ -660,6 +662,15 @@ async def landing_verify(payload: LandingVerifyRequest):
                 direction="outbound",
                 body=body,
             )
+            # Programar primer seguimiento en 24h
+            from datetime import datetime, timedelta, timezone as tz
+            next_followup = (datetime.now(tz.utc) + timedelta(hours=24)).isoformat()
+            try:
+                crm.sb.table("whatsapp_conversations").update(
+                    {"next_followup_at": next_followup, "followup_count": 0, "followup_stopped": False}
+                ).eq("id", conv["id"]).execute()
+            except Exception as fe:
+                logger.warning(f"No se pudo programar followup: {fe}")
     except Exception as e:
         logger.exception(f"Initial template follow-up message failed: {e}")
 
@@ -877,6 +888,8 @@ async def on_startup():
     asyncio.create_task(run_scheduler_loop())
     # Background loop para recordatorios de reuniones (cada 60s)
     asyncio.create_task(_meeting_reminder_loop())
+    # Background loop para seguimientos post-descarga (cada 30 min)
+    asyncio.create_task(_followup_loop())
 
 
 async def _meeting_reminder_loop():
@@ -889,3 +902,15 @@ async def _meeting_reminder_loop():
         except Exception as e:
             logger.error(f"[reminder-loop] Error: {e}")
         await asyncio.sleep(60)
+
+
+async def _followup_loop():
+    """Cada 30 min envía seguimientos automáticos a leads que no respondieron."""
+    while True:
+        try:
+            sent = await send_pending_followups()
+            if sent:
+                logger.info(f"[followup-loop] Seguimientos enviados: {sent}")
+        except Exception as e:
+            logger.error(f"[followup-loop] Error: {e}")
+        await asyncio.sleep(1800)  # 30 minutos
