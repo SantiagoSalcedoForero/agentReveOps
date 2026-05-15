@@ -22,6 +22,7 @@ def load_knowledge() -> str:
         # SST — conocimiento detallado de módulos y add-on VERA
         "product/sst/modulos.md",
         "product/sst/vera_addon.md",
+        "product/sst/purchase_flow.md",
         # VERA web — manual de asesora comercial y aprendizajes
         "vera/sales_advisor.md",
     ]
