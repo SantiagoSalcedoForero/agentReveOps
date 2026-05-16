@@ -387,7 +387,8 @@ class ConversationalAgent:
 
         m = re.search(r"\[PRODUCT_FIT:\s*(sst|flow|unknown)\]", tags_blob, re.IGNORECASE)
         if m:
-            tags["product_fit"] = m.group(1).lower()
+            val = m.group(1).lower()
+            tags["product_fit"] = {"sst": "verifty_sst", "flow": "verifty_flow"}.get(val, val)
 
         m = re.search(r"\[SEND_QUOTE:\s*(\{.*?\})\]", tags_blob, re.DOTALL)
         if m:
@@ -769,8 +770,8 @@ class ConversationalAgent:
             or tags.get("plan_recomendado", "")
             or ""
         ).upper()
-        es_plan_no_corporativo = bool(plan_recomendado_str) and plan_recomendado_str != "CORPORATIVO"
-        if tags.get("booking_ready") and es_plan_no_corporativo:
+        es_plan_self_serve = bool(plan_recomendado_str) and plan_recomendado_str != "CORPORATIVO"
+        if tags.get("booking_ready") and es_plan_self_serve:
             logger.warning(
                 f"[guard] BOOKING_READY ignorado: plan='{plan_recomendado_str}' "
                 f"no es CORPORATIVO. Convirtiendo a SST_READY. conv={conversation_id}"
@@ -778,13 +779,19 @@ class ConversationalAgent:
             tags["booking_ready"] = False
             tags["sst_ready"] = True
 
-        booking_trigger = (
-            product_fit != "verifty_sst"
-            and (
-                tags.get("booking_ready")
-                or (score is not None and score >= settings.QUALIFIED_SCORE_THRESHOLD)
+        # Guard extendido: bloquear también la rama score cuando el plan es self-serve.
+        # Un score alto no debe disparar demo si el lead ya tiene plan BASIC/STARTER/PRO/PLUS.
+        if es_plan_self_serve:
+            booking_trigger = False
+            tags["sst_ready"] = True
+        else:
+            booking_trigger = (
+                product_fit != "verifty_sst"
+                and (
+                    tags.get("booking_ready")
+                    or (score is not None and score >= settings.QUALIFIED_SCORE_THRESHOLD)
+                )
             )
-        )
 
         # Si NO hay correo y el modelo quiere agendar, primero pedimos correo
         if booking_trigger and not (context.get("lead_data") or {}).get("email"):

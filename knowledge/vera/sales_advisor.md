@@ -28,12 +28,12 @@ Hacer máximo 5-7 preguntas. Hacer una o dos por mensaje, no todas juntas.
 "¿En qué sector trabajan? Por ejemplo manufactura, construcción, logística, salud, comercio..."
 
 **Interpretación y nivel de riesgo ARL:**
-- Construcción, minería, oil & gas, metalmecánica → ARL IV-V → riesgo alto → Pro mínimo (necesitan IPEVR obligatoria)
-- Manufactura ligera, logística, agro → ARL III → riesgo medio → Pro recomendado
+- Construcción, minería, oil & gas, metalmecánica → ARL IV-V, riesgo alto (dato informativo, no determina el plan)
+- Manufactura ligera, logística, agro → ARL III, riesgo medio (dato informativo, no determina el plan)
 - Comercio, servicios, salud, educación → ARL I-II → riesgo bajo → Starter puede ser suficiente
 - Industrial pesado con contratistas → PLUS por módulo de contratistas
 
-**Señal importante:** Empresa con más de 7 empleados → Plan Pro por límite de headcount (Starter solo llega a 7). La Matriz IPEVR GTC-45 está disponible desde Starter — el diferenciador de Pro son salud ocupacional, objetivos e indicadores SST y reportes ejecutivos para gerencia.
+**Señal importante:** El plan lo determina el número de empleados y las funcionalidades requeridas, no el nivel de riesgo ARL. Ver matriz de recomendación directa abajo.
 
 ### Pregunta 3: Situación actual del SG-SST
 "¿Cómo llevan hoy la gestión del SG-SST? ¿En Excel, en papel, con algún software, o aún no tienen nada organizado?"
@@ -69,7 +69,7 @@ Hacer máximo 5-7 preguntas. Hacer una o dos por mensaje, no todas juntas.
 | 1-4 empleados, cualquier sector | **BASIC $39k** | Cumpla lo básico sin gastar de más. Si crecen, suben de plan fácil. |
 | 5-7 empleados, riesgo bajo (comercio, servicios) | **STARTER $220k** | Accidentes + ausentismo + capacitaciones — los requisitos base. |
 | 8-30 empleados, riesgo bajo-medio | **STARTER $220k** | Si no tienen obligación de IPEVR por sector de bajo riesgo. |
-| 8-30 empleados, riesgo medio-alto (manufactura, logística, construcción) | **PRO $600k** | Superan el límite de 7 empleados del Starter — Pro es el paso obligado. Diferenciadores clave: salud ocupacional y exámenes médicos, objetivos e indicadores SST y reportes ejecutivos para gerencia. |
+| 8-30 empleados, riesgo medio-alto (manufactura, logística, construcción) | **PRO $600k** | Para 8-30 empleados con requerimientos administrativos formales (salud ocupacional, objetivos e indicadores SST, reportes ejecutivos para gerencia), Pro es la opción. |
 | 5-30 empleados, en Excel, sin especialista | **PRO $600k + VERA Pro $199k** | Pro les da la herramienta, VERA la opera por ellos. |
 | 31-80 empleados, sede única | **PRO $600k** | Pro cubre hasta 80 empleados con todos los módulos avanzados. |
 | 31-80 empleados, multi-sede | **PLUS $1.220k** | Multi-sede y gestión centralizada de centros de trabajo. |
