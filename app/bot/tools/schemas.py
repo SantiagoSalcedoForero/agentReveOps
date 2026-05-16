@@ -32,10 +32,13 @@ TOOLS: list[dict] = [
                 "razon_eleccion": {
                     "type": "string",
                     "description": (
-                        "Razón concreta (≤200 caracteres) por la que recomiendas este plan, "
-                        "basada en el perfil del lead (empleados, sector, módulos necesarios). "
-                        "NO menciones cumplimiento normativo, multas, Mintrabajo "
-                        "ni obligaciones ARL."
+                        "Razón en una frase basada en el límite duro del catálogo "
+                        "(TRABAJADORES TOTALES). Ejemplos válidos: "
+                        "'tiene 8 trabajadores, Starter llega a 10'; "
+                        "'tiene 12 trabajadores, supera el techo de 10 del Starter, Pro llega a 50'; "
+                        "'tiene contratistas, Plus es el que los incluye'. "
+                        "PROHIBIDO: 'la normativa exige', 'la ARL pide', 'puede haber multa', "
+                        "'es obligatorio por ley'."
                     ),
                 },
             },

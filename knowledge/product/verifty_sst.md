@@ -43,25 +43,25 @@ los módulos, responder preguntas normativas y apoyar la gestión del sistema.
 
 ## Planes disponibles — Precios COP/mes (Colombia)
 
-| Plan | Precio | Empleados | Cuentas | Almacenamiento | Para quién |
-|------|--------|-----------|---------|----------------|------------|
-| **BASIC** | $39.000 COP/mes | 4 | 1 | 250 MB | Empresas hasta 4 trabajadores |
-| **STARTER** | $220.000 COP/mes | 7 | 3 | 3 GB | Microempresas 5-7 empleados |
-| **PRO** ⭐ más popular | $600.000 COP/mes | 30 | 20 | 15 GB | Empresas 8-30 empleados |
-| **PLUS** | $1.220.000 COP/mes | 80 | 50 | 50 GB | Empresas 31-80 empleados |
-| **CORPORATIVO** | Precio personalizado | Ilimitado | Ilimitado | Ilimitado | Empresas 80+ empleados |
+| Plan | Precio | Trabajadores totales | Desglose (sin login + con login) | Almacenamiento | Para quién |
+|------|--------|---------------------|----------------------------------|----------------|------------|
+| **BASIC** | $39.000 COP/mes | hasta 4 | 3 sin login + 1 con login | 250 MB | Micro empresa hasta 4 trabajadores |
+| **STARTER** | $220.000 COP/mes | hasta 10 | 7 sin login + 3 con login | 3 GB | Pequeña empresa hasta 10 trabajadores |
+| **PRO** ⭐ más popular | $600.000 COP/mes | hasta 50 | 30 sin login + 20 con login | 15 GB | Mediana empresa hasta 50 trabajadores |
+| **PLUS** | $1.220.000 COP/mes | hasta 130 | 80 sin login + 50 con login | 50 GB | Multi-sede o contratistas hasta 130 trabajadores |
+| **CORPORATIVO** | Precio personalizado | ilimitados | ilimitados | Ilimitado | Empresas 131+ trabajadores |
 
-### Cómo recomendar el plan según empleados
-- 1-3 empleados → BASIC ($39.000/mes) — primer paso de cumplimiento SST
-- 4-7 empleados → STARTER ($220.000/mes) — accidentes, ausentismo, capacitaciones e IPEVR (GTC-45)
-- 8-30 empleados → PRO ($600.000/mes) — el más popular, salud ocupacional, objetivos e indicadores y reportes para gerencia
-- 31-80 empleados → PLUS ($1.220.000/mes) — multi-sede, hasta 10 centros de trabajo
-- 80+ empleados → CORPORATIVO — precio personalizado, API + SSO
+### Cómo recomendar el plan según trabajadores totales
+- 1-4 trabajadores → BASIC ($39.000/mes) — primer paso de cumplimiento SST
+- 5-10 trabajadores → STARTER ($220.000/mes) — accidentes, ausentismo, capacitaciones e IPEVR (GTC-45)
+- 11-50 trabajadores → PRO ($600.000/mes) — el más popular, salud ocupacional, objetivos e indicadores y reportes para gerencia
+- 51-130 trabajadores → PLUS ($1.220.000/mes) — multi-sede, hasta 10 centros de trabajo, gestión de contratistas
+- 131+ trabajadores → CORPORATIVO — precio personalizado, API + SSO
 
 ### Módulos por plan
 | Plan | Módulos incluidos |
 |------|-------------------|
-| **BASIC** | Empleados (hasta 3), EPP básico, Formularios, Planes de Acción, Inspecciones, Reportes actos/condiciones, Gestor Documental (250 MB), Cronograma |
+| **BASIC** | Empleados (hasta 3 sin login + 1 con login), EPP básico, Formularios, Planes de Acción, Inspecciones, Reportes actos/condiciones, Gestor Documental (250 MB), Cronograma |
 | **STARTER** | BASIC + Caminatas de seguridad, Accidentes e Incidentes, Ausentismo, Capacitaciones, Perfil Sociodemográfico, Importar Excel, Dashboard avanzado, Matriz IPEVR (GTC-45) |
 | **PRO** | STARTER + Programas SST, Salud Ocupacional y exámenes médicos, Objetivos e Indicadores SST, Reportes ejecutivos para gerencia |
 | **PLUS** | PRO + Auditorías internas (ISO 45001), Matriz de requisitos legales, Gestión de contratistas, hasta 10 centros de trabajo |
@@ -70,10 +70,10 @@ los módulos, responder preguntas normativas y apoyar la gestión del sistema.
 Ver planes completos en: **https://sst.verifty.com/planes**
 
 ### Pitch de cierre por tamaño de empresa
-- "Para tus 3 empleados, el plan Basic son $39.000/mes — menos que un café diario para estar cumpliendo con la normativa."
-- "Para tus 15 empleados, el plan PRO son $600.000/mes — tienes salud ocupacional, objetivos e indicadores, y reportes ejecutivos para gerencia en una sola plataforma."
-- "Con 45 empleados necesitas el PLUS — $1.220.000/mes y tienes el SG-SST completo con multi-sede."
-- "Con 80+ empleados armamos una propuesta a la medida — pídeme que te conecte con el equipo."
+- "Para tus 3 trabajadores, el plan Basic son $39.000/mes — menos que un café diario."
+- "Para tus 15 trabajadores, el plan PRO son $600.000/mes — tienes salud ocupacional, objetivos e indicadores, y reportes ejecutivos para gerencia en una sola plataforma."
+- "Con 60 trabajadores el PLUS es lo que necesitas — $1.220.000/mes con SG-SST completo, multi-sede y gestión de contratistas."
+- "Con 131+ trabajadores armamos una propuesta a la medida — pídeme que te conecte con el equipo."
 
 ---
 

@@ -43,6 +43,15 @@ def handle_recomendar_plan_y_cerrar(
         logger.warning("[tools] razon_eleccion contiene palabras prohibidas — sanitizando")
         razon = _sanitize_razon(razon)
 
+    # Monitoreo: la razón debería mencionar un número concreto de trabajadores
+    import re as _re
+    if not _re.search(r"\d", razon):
+        logger.warning(
+            "[tools] razon_eleccion genérica sin número de trabajadores: %r — "
+            "el LLM no está siendo concreto con el límite del plan",
+            razon,
+        )
+
     tags: dict[str, Any] = {
         "plan_recomendado": plan,
         "sst_ready": True,

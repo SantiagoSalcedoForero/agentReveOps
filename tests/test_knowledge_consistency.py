@@ -69,6 +69,58 @@ class TestKnowledgeIpevrConsistency:
         )
 
 
+class TestLimitesM35:
+    """M3.5 — Los archivos de knowledge deben usar los nuevos límites de trabajadores totales."""
+
+    def _read(self, rel_path: str) -> str:
+        return (KNOWLEDGE_ROOT / rel_path).read_text(encoding="utf-8")
+
+    def test_knowledge_no_dice_starter_max_7(self):
+        """'hasta 7 empleados' como límite de STARTER no debe aparecer (nuevo techo: 10)."""
+        bad_phrases = [
+            "límite del Starter (7 empleados)",
+            "su límite es 7 empleados",
+            "Starter solo llega a 7",
+            "más de 7 empleados",
+        ]
+        found = []
+        for rel, text in _read_all_md():
+            for phrase in bad_phrases:
+                if phrase in text:
+                    found.append(f"{rel}: '{phrase}'")
+        assert not found, "Límite viejo del Starter (7 emp) encontrado:\n" + "\n".join(found)
+
+    def test_knowledge_no_dice_pro_max_30(self):
+        """El techo técnico de PRO (30 sin login) ya no debe presentarse como límite efectivo."""
+        bad_phrases = [
+            "Pro cubre hasta 80 empleados",  # era un error previo ya corregido
+            "Pro cubre hasta 30 empleados",
+            "8-30 empleados → PRO",
+            "31-80 empleados → PRO",
+        ]
+        found = []
+        for rel, text in _read_all_md():
+            for phrase in bad_phrases:
+                if phrase in text:
+                    found.append(f"{rel}: '{phrase}'")
+        assert not found, "Límite viejo del Pro (30 emp) encontrado:\n" + "\n".join(found)
+
+    def test_knowledge_no_dice_plus_max_80(self):
+        """El techo técnico de PLUS (80 sin login) ya no debe presentarse como límite efectivo."""
+        bad_phrases = [
+            "31-80 empleados, sede única",
+            "31-80 empleados, multi-sede",
+            "31-80 empleados con",
+            "80+ empleados | **CORPORATIVO",
+        ]
+        found = []
+        for rel, text in _read_all_md():
+            for phrase in bad_phrases:
+                if phrase in text:
+                    found.append(f"{rel}: '{phrase}'")
+        assert not found, "Límite viejo del Plus (80 emp) encontrado:\n" + "\n".join(found)
+
+
 class TestNoVentaPorMiedo:
 
     def test_no_venta_por_miedo_obvia(self):

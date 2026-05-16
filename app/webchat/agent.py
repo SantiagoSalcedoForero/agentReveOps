@@ -25,7 +25,10 @@ SST_PLANS = [
         "name": p.nombre,
         "price": formato_cop(p.precio_mensual_cop) if p.precio_mensual_cop else "A la medida",
         "price_monthly": p.precio_mensual_cop,
-        "employees": f"Hasta {p.max_empleados} empleados" if p.max_empleados else "Empleados ilimitados",
+        "employees": (
+            f"Hasta {p.max_trabajadores_totales} trabajadores"
+            if p.max_trabajadores_totales else "Trabajadores ilimitados"
+        ),
         "highlighted": p.codigo == "PRO",
         "badge": "Más popular" if p.codigo == "PRO" else None,
         "cta": "Contactar" if p.codigo == "CORPORATIVO" else f"Comprar {p.nombre}",

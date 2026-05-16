@@ -49,35 +49,40 @@ class TestRecomendarPlanBase:
         assert recomendar_plan_base(3).codigo == "BASIC"
 
     def test_4_emp(self):
-        # 4 > max_empleados(BASIC)=3 → STARTER
-        assert recomendar_plan_base(4).codigo == "STARTER"
+        # 4 == max_trabajadores_totales(BASIC)=4 → BASIC (M3.5: límite total, no solo sin login)
+        assert recomendar_plan_base(4).codigo == "BASIC"
 
     def test_7_emp(self):
+        # 7 <= max_trabajadores_totales(STARTER)=10 → STARTER
         assert recomendar_plan_base(7).codigo == "STARTER"
 
     def test_8_emp(self):
-        # 8 > max_empleados(STARTER)=7 → PRO
-        assert recomendar_plan_base(8).codigo == "PRO"
+        # 8 <= max_trabajadores_totales(STARTER)=10 → STARTER (M3.5: era PRO con límite viejo de 7)
+        assert recomendar_plan_base(8).codigo == "STARTER"
 
     def test_15_emp(self):
+        # 15 <= max_trabajadores_totales(PRO)=50 → PRO
         assert recomendar_plan_base(15).codigo == "PRO"
 
     def test_30_emp(self):
+        # 30 <= max_trabajadores_totales(PRO)=50 → PRO
         assert recomendar_plan_base(30).codigo == "PRO"
 
     def test_31_emp(self):
-        # 31 > max_empleados(PRO)=30 → PLUS
-        assert recomendar_plan_base(31).codigo == "PLUS"
+        # 31 <= max_trabajadores_totales(PRO)=50 → PRO (M3.5: era PLUS con límite viejo de 30)
+        assert recomendar_plan_base(31).codigo == "PRO"
 
     def test_50_emp(self):
-        assert recomendar_plan_base(50).codigo == "PLUS"
+        # 50 == max_trabajadores_totales(PRO)=50 → PRO (M3.5: era PLUS con límite viejo de 30)
+        assert recomendar_plan_base(50).codigo == "PRO"
 
     def test_80_emp(self):
+        # 80 <= max_trabajadores_totales(PLUS)=130 → PLUS
         assert recomendar_plan_base(80).codigo == "PLUS"
 
     def test_81_emp(self):
-        # 81 > max_empleados(PLUS)=80 → CORPORATIVO
-        assert recomendar_plan_base(81).codigo == "CORPORATIVO"
+        # 81 <= max_trabajadores_totales(PLUS)=130 → PLUS (M3.5: era CORPORATIVO con límite viejo de 80)
+        assert recomendar_plan_base(81).codigo == "PLUS"
 
     # Con contratistas — PRO y menores no incluyen contratistas
 
@@ -346,7 +351,8 @@ class TestIntegridadCatalogo:
     def test_corporativo_es_catch_all(self):
         """CORPORATIVO debe satisfacer cualquier combinación posible."""
         corp = PLANES_BASE[-1]
-        assert corp.max_empleados is None
+        assert corp.max_empleados_sin_acceso is None
+        assert corp.max_trabajadores_totales is None
         assert corp.max_sedes >= 100
         assert corp.incluye_contratistas is True
         assert corp.incluye_api_sso is True
@@ -391,6 +397,82 @@ class TestIncluyeIpevr:
         p = prompt_inyectable()
         lines = p.splitlines()
         starter_idx = next(i for i, l in enumerate(lines) if "STARTER" in l)
-        # Las 2 líneas siguientes al header de STARTER deben mencionar IPEVR
-        starter_block = "\n".join(lines[starter_idx:starter_idx + 3])
+        # Las primeras 5 líneas del bloque STARTER deben mencionar IPEVR
+        starter_block = "\n".join(lines[starter_idx:starter_idx + 5])
         assert "IPEVR" in starter_block, "STARTER no muestra IPEVR en prompt_inyectable"
+
+
+# ---------------------------------------------------------------------------
+# M3.5 — Modelo de trabajadores totales
+# ---------------------------------------------------------------------------
+
+class TestMaxTrabajadoresTotales:
+    def test_basic_4(self):
+        assert get_plan_base("BASIC").max_trabajadores_totales == 4
+
+    def test_starter_10(self):
+        assert get_plan_base("STARTER").max_trabajadores_totales == 10
+
+    def test_pro_50(self):
+        assert get_plan_base("PRO").max_trabajadores_totales == 50
+
+    def test_plus_130(self):
+        assert get_plan_base("PLUS").max_trabajadores_totales == 130
+
+    def test_corporativo_none(self):
+        assert get_plan_base("CORPORATIVO").max_trabajadores_totales is None
+
+    def test_suma_correcta(self):
+        """max_trabajadores_totales == max_empleados_sin_acceso + max_cuentas."""
+        for plan in PLANES_BASE:
+            if plan.max_empleados_sin_acceso is None:
+                assert plan.max_trabajadores_totales is None
+            else:
+                assert plan.max_trabajadores_totales == (
+                    plan.max_empleados_sin_acceso + plan.max_cuentas
+                )
+
+
+class TestRecomendarPlanBaseM35:
+    def test_8_trabajadores_es_starter(self):
+        """Bug original: 8 trabajadores debe ser STARTER (techo=10), no PRO."""
+        assert recomendar_plan_base(8).codigo == "STARTER"
+
+    def test_11_trabajadores_es_pro(self):
+        """11 supera el techo de STARTER (10) → PRO."""
+        assert recomendar_plan_base(11).codigo == "PRO"
+
+    def test_50_trabajadores_es_pro(self):
+        """50 == techo de PRO → PRO (no PLUS)."""
+        assert recomendar_plan_base(50).codigo == "PRO"
+
+    def test_51_trabajadores_es_plus(self):
+        """51 supera el techo de PRO (50) → PLUS."""
+        assert recomendar_plan_base(51).codigo == "PLUS"
+
+    def test_130_trabajadores_es_plus(self):
+        """130 == techo de PLUS → PLUS (no CORPORATIVO)."""
+        assert recomendar_plan_base(130).codigo == "PLUS"
+
+    def test_131_trabajadores_es_corporativo(self):
+        """131 supera el techo de PLUS (130) → CORPORATIVO."""
+        assert recomendar_plan_base(131).codigo == "CORPORATIVO"
+
+    def test_razon_eleccion_starter_menciona_10_trabajadores(self):
+        starter = get_plan_base("STARTER")
+        assert "10" in starter.razon_eleccion
+        assert "trabajadores" in starter.razon_eleccion.lower()
+
+    def test_razon_eleccion_no_menciona_limites_legacy(self):
+        """Las razones de elección no deben citar los límites viejos de solo max_empleados_sin_acceso."""
+        for plan in PLANES_BASE:
+            assert "hasta 7 empleados" not in plan.razon_eleccion
+            assert "hasta 30 empleados" not in plan.razon_eleccion
+            assert "hasta 80 empleados" not in plan.razon_eleccion
+
+    def test_prompt_inyectable_menciona_nota_aclaratoria(self):
+        """El prompt inyectable debe incluir la nota explicativa sobre tipos de trabajadores."""
+        p = prompt_inyectable()
+        assert "sin login" in p.lower()
+        assert "con login" in p.lower()
+        assert "ACLARACIÓN" in p or "aclaración" in p.lower()

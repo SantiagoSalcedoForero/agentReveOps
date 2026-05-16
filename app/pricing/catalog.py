@@ -3,6 +3,16 @@
 Fuente de verdad para WhatsApp bot, webchat VERA y cotizaciones email.
 Inmutable en runtime — frozen dataclasses, sin acceso a DB ni .env.
 Verifty Flow queda fuera de este módulo (opera con handoff a demo).
+
+Modelo M3.5 — TRABAJADORES TOTALES
+===================================
+Cada plan tiene un límite de "trabajadores totales con SG-SST gestionado",
+que es la suma de:
+  max_empleados_sin_acceso  — trabajadores sin login (info SST en el sistema)
+  max_cuentas               — trabajadores con login (responsable SST, supervisor...)
+
+El bot recomienda por trabajadores TOTALES.
+El campo técnico max_empleados_sin_acceso queda como detalle interno.
 """
 from __future__ import annotations
 
@@ -26,18 +36,18 @@ class Ciclo(str, Enum):
 
 @dataclass(frozen=True)
 class PlanBase:
-    codigo:               str            # "BASIC" | "STARTER" | "PRO" | "PLUS" | "CORPORATIVO"
-    nombre:               str            # "Basic", "Starter", ...
-    precio_mensual_cop:   Optional[int]  # None para Corporativo
-    max_empleados:        Optional[int]  # None = ilimitado
-    max_sedes:            int
-    max_cuentas:          int
-    almacenamiento_gb:    float
-    incluye_ipevr:        bool           # Matriz IPEVR GTC-45 disponible desde STARTER
-    incluye_contratistas: bool
-    incluye_api_sso:      bool
-    descripcion_corta:    str            # 1 línea para el bot
-    razon_eleccion:       str            # frase exacta que usa el bot al recomendarlo
+    codigo:                   str           # "BASIC" | "STARTER" | "PRO" | "PLUS" | "CORPORATIVO"
+    nombre:                   str           # "Basic", "Starter", ...
+    precio_mensual_cop:       Optional[int] # None para Corporativo
+    max_empleados_sin_acceso: Optional[int] # trabajadores sin login; None = ilimitado
+    max_sedes:                int
+    max_cuentas:              int           # trabajadores con login a la app
+    almacenamiento_gb:        float
+    incluye_ipevr:            bool          # Matriz IPEVR GTC-45 disponible desde STARTER
+    incluye_contratistas:     bool
+    incluye_api_sso:          bool
+    descripcion_corta:        str           # 1 línea para el bot
+    razon_eleccion:           str           # frase exacta que usa el bot al recomendarlo
 
     @property
     def precio_dia_cop(self) -> Optional[int]:
@@ -45,6 +55,13 @@ class PlanBase:
         if self.precio_mensual_cop is None:
             return None
         return round(self.precio_mensual_cop / 30)
+
+    @property
+    def max_trabajadores_totales(self) -> Optional[int]:
+        """Trabajadores totales = sin acceso + con acceso. None si ilimitado."""
+        if self.max_empleados_sin_acceso is None:
+            return None
+        return self.max_empleados_sin_acceso + self.max_cuentas
 
 
 @dataclass(frozen=True)
@@ -67,67 +84,70 @@ PLANES_BASE: list[PlanBase] = [
         codigo="BASIC",
         nombre="Basic",
         precio_mensual_cop=39_000,
-        max_empleados=3,
+        max_empleados_sin_acceso=3,
         max_sedes=1,
         max_cuentas=1,
         almacenamiento_gb=0.25,
         incluye_ipevr=False,
         incluye_contratistas=False,
         incluye_api_sso=False,
-        descripcion_corta="Plan básico para empresas micro (hasta 3 empleados)",
+        descripcion_corta="micro empresa (hasta 4 trabajadores)",
         razon_eleccion=(
-            "te alcanza el Basic — manejas hasta 3 empleados, "
-            "formularios e inspecciones de campo"
+            "te alcanza el Basic — hasta 4 trabajadores en total "
+            "(3 sin login + 1 con login), formularios e inspecciones de campo"
         ),
     ),
     PlanBase(
         codigo="STARTER",
         nombre="Starter",
         precio_mensual_cop=220_000,
-        max_empleados=7,
+        max_empleados_sin_acceso=7,
         max_sedes=1,
         max_cuentas=3,
         almacenamiento_gb=3,
         incluye_ipevr=True,
         incluye_contratistas=False,
         incluye_api_sso=False,
-        descripcion_corta="Empresas pequeñas iniciando SG-SST (hasta 7 empleados)",
+        descripcion_corta="pequeña empresa iniciando SG-SST (hasta 10 trabajadores)",
         razon_eleccion=(
-            "el Starter te queda perfecto — hasta 7 empleados, "
-            "capacitaciones, accidentes, programas SST e incluye matriz IPEVR (GTC-45)"
+            "el Starter te queda perfecto — hasta 10 trabajadores en total "
+            "(7 sin login + 3 con login), incluye matriz IPEVR GTC-45, "
+            "capacitaciones, accidentes y programas SST"
         ),
     ),
     PlanBase(
         codigo="PRO",
         nombre="Pro",
         precio_mensual_cop=600_000,
-        max_empleados=30,
+        max_empleados_sin_acceso=30,
         max_sedes=1,
         max_cuentas=20,
         almacenamiento_gb=15,
         incluye_ipevr=True,
         incluye_contratistas=False,
         incluye_api_sso=False,
-        descripcion_corta="Empresas medianas con SG-SST formal (hasta 30 empleados)",
+        descripcion_corta="mediana empresa con SG-SST formal (hasta 50 trabajadores)",
         razon_eleccion=(
-            "el Pro es el que te sirve — hasta 30 empleados, "
-            "salud ocupacional, objetivos e indicadores SST y reportes ejecutivos para gerencia"
+            "el Pro es el que te sirve — hasta 50 trabajadores en total "
+            "(30 sin login + 20 con login), salud ocupacional, "
+            "objetivos e indicadores SST y reportes ejecutivos para gerencia"
         ),
     ),
     PlanBase(
         codigo="PLUS",
         nombre="Plus",
         precio_mensual_cop=1_220_000,
-        max_empleados=80,
+        max_empleados_sin_acceso=80,
         max_sedes=10,
         max_cuentas=50,
         almacenamiento_gb=50,
         incluye_ipevr=True,
         incluye_contratistas=True,
         incluye_api_sso=False,
-        descripcion_corta="Empresas con múltiples sedes y contratistas (hasta 80 empleados)",
+        descripcion_corta="multi-sede con contratistas (hasta 130 trabajadores)",
         razon_eleccion=(
-            "el Plus es el adecuado — multi-sede, contratistas, "
+            "el Plus es el adecuado — hasta 130 trabajadores en total "
+            "(80 sin login + 50 con login), multi-sede, contratistas, "
             "auditorías ISO 45001 y requisitos legales"
         ),
     ),
@@ -135,16 +155,16 @@ PLANES_BASE: list[PlanBase] = [
         codigo="CORPORATIVO",
         nombre="Corporativo",
         precio_mensual_cop=None,
-        max_empleados=None,
+        max_empleados_sin_acceso=None,
         max_sedes=999,
         max_cuentas=999,
         almacenamiento_gb=999,
         incluye_ipevr=True,
         incluye_contratistas=True,
         incluye_api_sso=True,
-        descripcion_corta="Solución a la medida (empleados ilimitados, API, SSO)",
+        descripcion_corta="solución a la medida (trabajadores ilimitados)",
         razon_eleccion=(
-            "esto se va a Corporativo — empleados ilimitados, API y SSO, "
+            "esto se va a Corporativo — trabajadores ilimitados, API y SSO, "
             "lo cotizamos a la medida con el equipo"
         ),
     ),
@@ -226,8 +246,10 @@ def recomendar_plan_base(
 ) -> PlanBase:
     """Devuelve el plan de menor precio que satisface todos los límites dados.
 
+    num_empleados se interpreta como TRABAJADORES TOTALES (sin acceso + con acceso).
+
     Evalúa PLANES_BASE en orden ascendente; retorna el primero que cumple:
-    - max_empleados es None (ilimitado) o num_empleados <= max_empleados
+    - max_trabajadores_totales es None (ilimitado) o num_empleados <= max_trabajadores_totales
     - max_sedes >= num_sedes
     - si tiene_contratistas, el plan debe incluir_contratistas
     - si necesita_api_sso, el plan debe incluir_api_sso
@@ -235,7 +257,8 @@ def recomendar_plan_base(
     Nunca retorna None — CORPORATIVO es el catch-all final.
     """
     for plan in PLANES_BASE:
-        emp_ok   = plan.max_empleados is None or num_empleados <= plan.max_empleados
+        totales = plan.max_trabajadores_totales
+        emp_ok   = totales is None or num_empleados <= totales
         sedes_ok = plan.max_sedes >= num_sedes
         cont_ok  = not tiene_contratistas or plan.incluye_contratistas
         sso_ok   = not necesita_api_sso or plan.incluye_api_sso
@@ -279,8 +302,8 @@ def deep_link_compra(
 def prompt_inyectable() -> str:
     """Renderiza el catálogo completo como texto listo para inyectar en un system prompt.
 
-    Formato compacto y parseable visualmente. No incluye lógica de segmentación —
-    esa vive en las REGLAS del system prompt del agente. Solo datos.
+    Muestra TRABAJADORES TOTALES como dato principal, con desglose técnico.
+    No incluye lógica de segmentación — esa vive en las REGLAS del system prompt.
     """
     lines: list[str] = [
         "═══════════════════════════════════════════════════════════",
@@ -293,25 +316,41 @@ def prompt_inyectable() -> str:
 
     for p in PLANES_BASE:
         if p.precio_mensual_cop is not None:
-            precio_str = f"{formato_cop(p.precio_mensual_cop)}/mes"
-            anual_str  = f"  |  {formato_cop(precio_con_ciclo(p.precio_mensual_cop, Ciclo.ANUAL))}/año (10% dto)"
+            dia_str   = f"($ {p.precio_dia_cop:,.0f}/día)".replace(",", ".")
+            precio_str = f"{formato_cop(p.precio_mensual_cop)}/mes {dia_str}"
+            anual_str  = (
+                f"  |  {formato_cop(precio_con_ciclo(p.precio_mensual_cop, Ciclo.ANUAL))}"
+                f"/año (10% dto)"
+            )
         else:
             precio_str = "A la medida"
             anual_str  = ""
 
-        emp_str   = f"hasta {p.max_empleados} emp" if p.max_empleados else "ilimitados"
-        sedes_str = "ilimitadas" if p.max_sedes >= 999 else (f"{p.max_sedes} sede" + ("s" if p.max_sedes != 1 else ""))
+        if p.max_trabajadores_totales is not None:
+            sin_acc = p.max_empleados_sin_acceso
+            con_acc = p.max_cuentas
+            tot_str = (
+                f"Hasta {p.max_trabajadores_totales} trabajadores "
+                f"({sin_acc} sin login + {con_acc} con login)"
+            )
+        else:
+            tot_str = "Trabajadores ilimitados"
+
+        sedes_str = "ilimitadas" if p.max_sedes >= 999 else (
+            f"{p.max_sedes} sede" + ("s" if p.max_sedes != 1 else "")
+        )
         ipevr_str = " | IPEVR (GTC-45)" if p.incluye_ipevr else ""
         cont_str  = " | con contratistas" if p.incluye_contratistas else ""
         sso_str   = " | API + SSO" if p.incluye_api_sso else ""
 
+        lines.append(f"  {p.codigo} — {precio_str}{anual_str}")
+        lines.append(f"    {tot_str}")
         lines.append(
-            f"  {p.codigo:<12} | {emp_str:<16} | {precio_str}{anual_str}"
+            f"    {sedes_str} · {p.almacenamiento_gb} GB"
+            f"{ipevr_str}{cont_str}{sso_str}"
         )
-        lines.append(
-            f"               | {sedes_str:<10} | {p.descripcion_corta}{ipevr_str}{cont_str}{sso_str}"
-        )
-        lines.append(f"               | Cuándo usarlo: {p.razon_eleccion}")
+        lines.append(f"    {p.descripcion_corta}")
+        lines.append(f"    Cuándo: {p.razon_eleccion}")
         lines.append("")
 
     lines += [
@@ -335,12 +374,25 @@ def prompt_inyectable() -> str:
         "INSTRUCCIONES DE USO (para el bot):",
         "- SOLO puedes cotizar los planes listados arriba con los precios listados.",
         "  NO inventes planes ni precios.",
-        "- Para CORPORATIVO: no hay self-serve. Escala a hola@sst.verifty.com",
-        "  o emite [HANDOFF_NEEDED].",
+        "- Para CORPORATIVO: no hay self-serve. Usa escalar_a_humano o escalar_a_demo.",
         "- Descuento anual: 10% sobre el total del año (pago anticipado 12 meses).",
         "- Este catálogo es exclusivo de Verifty SST. No menciones planes del",
         "  producto Verifty Flow en conversaciones SST.",
         "═══════════════════════════════════════════════════════════",
+        "",
+        "─── ACLARACIÓN PARA EL CLIENTE ─────────────────────────────",
+        "Si te preguntan 'cómo cuenta los trabajadores':",
+        "Cada plan permite un total de trabajadores con SG-SST gestionado,",
+        "distribuidos en dos tipos:",
+        "  - SIN acceso a la app: trabajadores cuya info SST está en el sistema",
+        "    (capacitaciones, exámenes, accidentes) pero no tienen login.",
+        "  - CON acceso a la app: trabajadores con cuenta para entrar a la",
+        "    plataforma (responsable SST, supervisor, gerente). Su info SST",
+        "    también queda en el sistema.",
+        "El TOTAL es lo que importa para escoger plan.",
+        "Ejemplo: empresa de 8 trabajadores → STARTER te alcanza porque",
+        "el techo son 10.",
+        "─────────────────────────────────────────────────────────────",
     ]
 
     return "\n".join(lines)
