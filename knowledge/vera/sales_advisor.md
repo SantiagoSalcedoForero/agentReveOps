@@ -33,7 +33,7 @@ Hacer máximo 5-7 preguntas. Hacer una o dos por mensaje, no todas juntas.
 - Comercio, servicios, salud, educación → ARL I-II → riesgo bajo → Starter puede ser suficiente
 - Industrial pesado con contratistas → PLUS por módulo de contratistas
 
-**Señal importante:** Empresa en ARL clase III, IV o V con más de 8 empleados → Plan Pro es obligatorio para cumplir bien (por IPEVR GTC-45).
+**Señal importante:** Empresa con más de 7 empleados → Plan Pro por límite de headcount (Starter solo llega a 7). La Matriz IPEVR GTC-45 está disponible desde Starter — el diferenciador de Pro son salud ocupacional, objetivos e indicadores SST y reportes ejecutivos para gerencia.
 
 ### Pregunta 3: Situación actual del SG-SST
 "¿Cómo llevan hoy la gestión del SG-SST? ¿En Excel, en papel, con algún software, o aún no tienen nada organizado?"
@@ -69,7 +69,7 @@ Hacer máximo 5-7 preguntas. Hacer una o dos por mensaje, no todas juntas.
 | 1-4 empleados, cualquier sector | **BASIC $39k** | Cumpla lo básico sin gastar de más. Si crecen, suben de plan fácil. |
 | 5-7 empleados, riesgo bajo (comercio, servicios) | **STARTER $220k** | Accidentes + ausentismo + capacitaciones — los requisitos base. |
 | 8-30 empleados, riesgo bajo-medio | **STARTER $220k** | Si no tienen obligación de IPEVR por sector de bajo riesgo. |
-| 8-30 empleados, riesgo medio-alto (manufactura, logística, construcción) | **PRO $600k** | IPEVR GTC-45 es obligatoria en riesgo medio-alto. Sin ella están incumpliendo. |
+| 8-30 empleados, riesgo medio-alto (manufactura, logística, construcción) | **PRO $600k** | Superan el límite de 7 empleados del Starter — Pro es el paso obligado. Diferenciadores clave: salud ocupacional y exámenes médicos, objetivos e indicadores SST y reportes ejecutivos para gerencia. |
 | 5-30 empleados, en Excel, sin especialista | **PRO $600k + VERA Pro $199k** | Pro les da la herramienta, VERA la opera por ellos. |
 | 31-80 empleados, sede única | **PRO $600k** | Pro cubre hasta 80 empleados con todos los módulos avanzados. |
 | 31-80 empleados, multi-sede | **PLUS $1.220k** | Multi-sede y gestión centralizada de centros de trabajo. |
@@ -82,10 +82,9 @@ Hacer máximo 5-7 preguntas. Hacer una o dos por mensaje, no todas juntas.
 ## Argumentos por objeción — cómo responder
 
 ### "Es muy caro"
-- Comparar con la multa del Mintrabajo: "Una multa por incumplimiento de Res. 0312 puede llegar a 500 SMMLV — $700 millones de pesos. El Plan Pro son $600.000 al mes."
-- Comparar con el costo actual: "¿Cuánto están pagando por el consultor SST externo? ¿Cuántas horas de su equipo se van en Excel?"
+- Comparar con el costo actual: "¿Cuánto pagan hoy por un consultor SST externo, o cuántas horas de su equipo se van en Excel? El Plan Pro son $600.000 al mes — costo fijo, predecible, sin horas extras."
 - Fraccionar: "$600.000 al mes son $20.000 al día — menos que el almuerzo del responsable SST."
-- Plan de inicio: "Empiecen con Starter a $220.000. En el momento que necesiten la IPEVR, suben a Pro."
+- Plan de inicio: "Empiecen con Starter a $220.000. Si crecen más de 7 empleados o necesitan salud ocupacional y reportes ejecutivos, el salto a Pro es natural."
 
 ### "Ya tenemos algo / usamos Excel"
 - "¿Cuánto tiempo les toma actualizar la matriz de riesgos en Excel? Nuestros clientes que venían de Excel lo reducen un 70% desde el primer mes."
@@ -122,11 +121,11 @@ Una vez que tienes la información del lead, da la recomendación en este format
 **Ejemplo de recomendación bien hecha:**
 > "Para su empresa de 22 empleados en metalmecánica, el Plan Pro a $600.000/mes es el que necesitan.
 >
-> Por qué Pro: están en ARL clase IV, lo que significa que la Matriz IPEVR con metodología GTC-45 es obligatoria — y el Pro la incluye completa. También incluyen accidentes con el wizard de la Res. 1401 (que ya deberían estar usando), salud ocupacional para exámenes médicos periódicos, y programas SST.
+> Por qué Pro: con 22 empleados superan el límite del Starter (7 empleados) — Pro es el siguiente paso natural. Además, Pro incluye salud ocupacional con control de exámenes médicos, objetivos e indicadores SST para reportar a gerencia o a la ARL, y reportes ejecutivos que muestran el estado real del sistema en un vistazo.
 >
-> Por qué no el Starter: les faltaría la IPEVR, que en su sector es el módulo más importante.
+> Por qué no el Starter: su límite es 7 empleados — con 22 simplemente no alcanza, independiente del sector.
 >
-> Por qué no el Plus: es para múltiples sedes y gestión de contratistas — si operan desde una sola sede, sería pagar de más.
+> Por qué no el Plus: es para múltiples sedes y gestión de contratistas — si operan desde una sola sede sin contratistas, sería pagar de más.
 >
 > Una cosa más: como no tienen especialista SST dedicado, VERA Pro a $199.000/mes adicionales sería como tener un coordinador SST 24/7 que ya conoce su empresa. Piénsenlo."
 

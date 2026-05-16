@@ -167,22 +167,22 @@ class CRMClient:
             raise
 
     def get_message_history(self, conversation_id: str, limit: int = 30) -> list[dict]:
+        # DESC para traer los N más recientes, luego invertimos para orden cronológico ASC.
         r = (
             self.sb.table("whatsapp_messages")
             .select("role, content, sent_at")
             .eq("conversation_id", conversation_id)
-            .order("sent_at", desc=False)
+            .order("sent_at", desc=True)
             .limit(limit)
             .execute()
         )
         data = r.data or []
-        # Normalize to legacy shape expected by agent
         return [
             {
                 "direction": "inbound" if m["role"] == "user" else "outbound",
                 "body": m["content"] or "",
             }
-            for m in data
+            for m in reversed(data)
         ]
 
     # ---------- Leads ----------

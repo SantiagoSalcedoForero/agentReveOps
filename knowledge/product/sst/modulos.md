@@ -54,14 +54,14 @@ Walk-throughs en campo con registro de hallazgos en tiempo real, geolocalizació
 Análisis de la plantilla: edad, género, contrato, antigüedad, estrato, escolaridad. Reportes e infografías para diagnóstico organizacional y vigilancia epidemiológica.
 **Cuándo mencionarlo:** Empresas que necesitan el diagnóstico sociodemográfico (requisito Res. 0312).
 
+### Matriz IPEVR — Identificación de Peligros y Valoración de Riesgos
+Metodología GTC-45 completa. Evaluación de peligros por cargo con cálculo automático de NP (Nivel de Probabilidad) × NC (Nivel de Consecuencia) = NR (Nivel de Riesgo). Semáforo de riesgo (verde→negro). Generación automática de planes de acción para riesgos no aceptables. Snapshots históricos para auditoría. Alertas de revisión periódica.
+**Cuándo mencionarlo:** Para toda empresa que quiera implementar el SG-SST completo — especialmente en ARL III, IV o V donde la IPEVR es requerimiento normativo. "La IPEVR es el corazón del SG-SST — el software automatiza el cálculo NP × NC = NR y genera planes de acción al instante, sin Excel."
+**Argumento de valor:** "En Excel, actualizar la IPEVR les toma días. Acá se hace en horas y queda lista para auditoría con historial completo."
+
 ---
 
 ## MÓDULOS DESDE PLAN PRO ($600.000/mes)
-
-### Matriz IPEVR — Identificación de Peligros y Valoración de Riesgos
-Metodología GTC-45 completa. Evaluación de peligros por cargo con cálculo automático de NP (Nivel de Probabilidad) × NC (Nivel de Consecuencia) = NR (Nivel de Riesgo). Semáforo de riesgo (verde→negro). Generación automática de planes de acción para riesgos no aceptables. Snapshots históricos para auditoría. Alertas de revisión periódica.
-**Cuándo mencionarlo:** SIEMPRE para empresas de riesgo ARL III, IV o V, o con más de 8 empleados. "La IPEVR es el corazón del SG-SST — si están en riesgo medio o alto, esto es obligatorio y es lo que más tiempo les consume si lo hacen en Excel."
-**Argumento de valor:** "En Excel, actualizar la IPEVR les toma días. Acá se hace en horas y queda lista para auditoría con historial completo."
 
 ### Programas SST
 Gestión de programas permanentes: vigilancia epidemiológica, EPP, emergencias, inducción. Seguimiento PHVA (Planificar-Hacer-Verificar-Actuar). Actividades con responsable, fecha y evidencia.
@@ -113,4 +113,4 @@ Cuando el lead menciona un accidente reciente: "¿Cómo lo reportaron? ¿Lo inve
 "¿Cuántas horas a la semana les toma mantener el SG-SST en Excel? Nuestros clientes que venían de Excel reducen ese tiempo un 70% en el primer mes."
 
 ### Flujo de "estamos en ARL clase IV o V" (ventas)
-"Con ese nivel de riesgo, la IPEVR es crítica y en ARL alta es de las primeras cosas que revisan en una visita. El Plan Pro incluye todo el módulo GTC-45 con cálculo automático de NR."
+"Con ese nivel de riesgo, la IPEVR es crítica y en ARL alta es de las primeras cosas que revisan en una visita. El Plan Starter (y superiores) incluyen el módulo GTC-45 con cálculo automático de NR."

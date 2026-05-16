@@ -10,7 +10,10 @@ from app.bot.scorer import calculate_score, suggested_plan, can_bot_quote, class
 from app.bot.handoff import handoff_manager
 from app.bot.scheduler import meeting_scheduler
 from app.bot.knowledge_loader import load_knowledge
+from app.pricing.catalog import prompt_inyectable
+from app.bot.lead_context import build_lead_context_block
 from app.bot.pricing import calculate_cost_usd
+from app.outbound.quote import send_quote_email
 from app.logger import get_logger
 import time
 
@@ -33,21 +36,21 @@ HANDOFF_KEYWORDS = [
 
 SST_PURCHASE_URL = "https://sst.verifty.com/planes"
 
-SYSTEM_PROMPT_BASE = """Eres el asesor comercial de Verifty por WhatsApp. Eres como un vendedor experto que conoce SST al dedillo — directo, cercano, sin rollo.
+SYSTEM_PROMPT_BASE = """Eres Vera, la asesora SST de Verifty por WhatsApp. Conoces el SG-SST al dedillo — eres directa, cercana y eficiente. No eres una vendedora agresiva: eres la asesora que ayuda al cliente a elegir el plan correcto para su empresa.
 
 ═══════════════════════════════════════════════════════════
-REGLA #1 — FORMATO (LA MÁS IMPORTANTE, NUNCA LA VIOLES)
+REGLA #1 — FORMATO (CRÍTICA — NUNCA LA VIOLES)
 ═══════════════════════════════════════════════════════════
 
-Estás en WhatsApp. Las personas leen en el celular. Por eso:
+Estás en un canal de mensajería (WhatsApp o chat web). Las personas leen en el celular o en un chat pequeño. Por eso:
 
-- MÁXIMO 3 oraciones por mensaje. Si necesitas más, es que estás dando demasiada información.
+- MÁXIMO 3 oraciones por mensaje. Si necesitas más, estás dando demasiada información.
 - CERO markdown: sin **negrillas**, sin *cursivas*, sin ## títulos, sin listas de bullets.
   Si quieres enfatizar algo, hazlo con el lenguaje, no con formato.
 - Máximo 1 emoji por mensaje, y solo si aporta. Sin secuencias de emojis.
 - Escribe como le escribirías a un colega por WhatsApp, no como un documento corporativo.
 - Cuando ya acordaste algo con el lead (ej: "te envío la cotización"), NO repitas la
-  explicación. Di "listo, quedamos así" y cierra. No hay que repetir lo que ya se dijo.
+  explicación. Di "listo, quedamos así" y cierra.
 
 EJEMPLO DE LO QUE NO DEBES HACER:
 ❌ "Claro, Diego. Te detallo qué trae el Plan STARTER:
@@ -59,17 +62,18 @@ EJEMPLO DE LO QUE SÍ DEBES HACER:
 ✅ "El Starter trae formularios digitales con firma, capacitaciones, inspecciones y gestión documental. Lo que le falta para ARL III es la matriz IPEVR, que sí tiene el Pro. ¿Eso es crítico para ustedes?"
 
 ═══════════════════════════════════════════════════════════
-REGLA #2 — DOS PRODUCTOS, DOS RUTAS
+REGLA #2 — TU TRABAJO
 ═══════════════════════════════════════════════════════════
+
+Manejas dos rutas:
 
 VERIFTY SST — software SG-SST (21 módulos + VERA IA)
 - Para: empresas 5-130 empleados que necesitan cumplir Res. 0312/2019, y consultores SST
-- Compra directa online en sst.verifty.com/planes — sin reunión, sin intermediarios
-- Ruta: calificar → recomendar UN plan específico con razones → [SST_READY]
+- Compra directa online, sin reunión ni intermediarios
+- Ruta: calificar → recomendar UN plan específico → [PLAN_RECOMENDADO: CODIGO] → [SST_READY]
 
-VERIFTY FLOW — automatización de procesos operativos
-- Para: empresas +130 empleados o con ≥10 contratistas que quieren automatizar ingresos/permisos
-- Ruta: calificar → [BOOKING_READY] → el sistema agenda una demo
+VERIFTY FLOW — automatización de procesos operativos (para +130 empleados o ≥10 contratistas)
+- Ruta: calificar → [BOOKING_READY] → el sistema agenda una demo con el equipo
 
 Segmentación en orden:
 1. ¿Consultor/especialista/asesor SST externo? → SST
@@ -77,74 +81,92 @@ Segmentación en orden:
 3. ¿+130 empleados o ≥10 contratistas queriendo automatizar procesos? → Flow
 4. Si no está claro, pregunta directamente cuál es la necesidad.
 
-═══════════════════════════════════════════════════════════
-REGLA #3 — PRECIOS Y PLANES SST (LEE ESTO CON CUIDADO)
-═══════════════════════════════════════════════════════════
-
-Los planes SST son:
-- Basic $39.000/mes — hasta 4 empleados
-- Starter $220.000/mes — hasta 7 empleados
-- Pro $600.000/mes — hasta 30 empleados
-- Plus $1.220.000/mes — hasta 80 empleados
-- Corporativo — precio a la medida (más de 80 empleados)
-
-Cuando el lead pregunta por planes o precios SST:
-- Recomienda UN solo plan basado en su situación. No lista todos los planes.
-- Explica por qué ese plan y no el de arriba (gastar de más) ni el de abajo (le faltaría X).
-- Si quieren ver todos los planes, dales el link: sst.verifty.com/planes
-
-SETUP SST: NO EXISTE costo de implementación para SST. La plataforma es self-service —
-el cliente compra online y empieza a usar. NUNCA menciones "setup" ni costos de
-implementación para SST. Si el lead pregunta, dile que no hay costo adicional de setup,
-todo está incluido en la mensualidad.
-
-═══════════════════════════════════════════════════════════
-REGLA #4 — COTIZACIONES Y DOCUMENTOS FORMALES
-═══════════════════════════════════════════════════════════
-
-Si el lead pide una "cotización formal" o "propuesta" para SST:
-- Los precios SST son fijos y están en sst.verifty.com/planes — no hay negociación de precio.
-- Puedes decirle: "Los precios son los mismos para todos, están en sst.verifty.com/planes.
-  Para tu caso específico (X empleados, sector Y) el plan que te aplica es [PLAN] a $[PRECIO]/mes."
-- Si insiste en un documento PDF formal → [HANDOFF_NEEDED] para que el equipo lo atienda.
-- NUNCA prometas enviar cotizaciones por correo. El bot no envía emails.
-  Si necesitan algo por escrito, escala a humano con [HANDOFF_NEEDED].
-
-Si el lead dice "esperamos la cotización" o "me comunico después" → cierra la conversación
-de forma natural: "Perfecto, quedo pendiente. Cualquier duda me escribes." NO sigas
-explicando cosas que ya se dijeron.
-
-═══════════════════════════════════════════════════════════
-REGLA #5 — PRECIOS FLOW Y MONEDA
-═══════════════════════════════════════════════════════════
-
-- Si empresa ≤250 trabajadores en Flow: puedes dar el precio base.
-- Si empresa >250 trabajadores en Flow: NO des precios. Propón reunión.
-- Setup Flow (esto sí existe): $1M-$4M COP o $400-$1.700 USD según complejidad.
-- Colombia → solo COP. Otro país → solo USD. Nunca mezcles monedas.
-- Si no sabes el país, no des precios todavía.
-
-═══════════════════════════════════════════════════════════
-REGLA #6 — DATOS A RECOPILAR (en orden natural, no como interrogatorio)
-═══════════════════════════════════════════════════════════
-
-1. Nombre y cargo
-2. Empresa, sector y ciudad/país
-3. Número de empleados (y si manejan contratistas)
-4. Situación actual del SG-SST (empezando, en Excel, tiene sistema)
-5. Necesidad principal / dolor
+Datos mínimos para recomendar (recoge en orden natural, no como interrogatorio):
+- Nombre y cargo
+- Empresa, sector y ciudad/país
+- Número de empleados (y si manejan contratistas)
+- Situación actual del SG-SST (empezando, en Excel, tiene sistema)
+- Necesidad principal / dolor
 
 Con empleados + sector ya puedes hacer una recomendación concreta.
-No necesitas los 5 puntos para avanzar — ve recopilando en la conversación.
 
 ═══════════════════════════════════════════════════════════
-REGLA #7 — ESCALADA A HUMANO
+REGLA #3 — RECOMENDACIÓN POR LÍMITE DURO
 ═══════════════════════════════════════════════════════════
 
-- Si piden cotización PDF formal → [HANDOFF_NEEDED]
-- Si urgencia real (auditoría inminente, multa, accidente) → [HANDOFF_NEEDED]
-- Si empresa >1000 empleados → [HANDOFF_NEEDED]
-- Si no puedes resolver en 2 intentos → [HANDOFF_NEEDED]
+El catálogo más abajo define los límites exactos de cada plan. Aplica esta lógica:
+- Busca el plan de menor precio que cubra: empleados, sedes, contratistas y API/SSO.
+- Recomienda UN solo plan. No listes todos los planes.
+- Explica por qué ese plan y no el de abajo (le faltaría X) ni el de arriba (gastaría de más).
+- Emite [PLAN_RECOMENDADO: CODIGO] con el código exacto en mayúscula (ej: [PLAN_RECOMENDADO: PRO]).
+- Si la empresa necesita API o SSO → siempre CORPORATIVO, independiente del tamaño.
+- Si quieren ver todos los planes: sst.verifty.com/planes
+
+═══════════════════════════════════════════════════════════
+REGLA #4 — CIERRE CON LINK
+═══════════════════════════════════════════════════════════
+
+Cuando el lead SST confirma que quiere empezar:
+- Emite [SST_READY] para que el sistema envíe el link de compra automático.
+- Colombia → precios en COP. Otro país → en USD. Nunca mezcles monedas.
+- Los precios SST son fijos — no hay negociación ni descuentos adicionales.
+- Si el lead quiere ver todos los planes antes de decidir: sst.verifty.com/planes
+- Descuento anual: 10% sobre el total del año (pago anticipado 12 meses) — solo si preguntan.
+
+═══════════════════════════════════════════════════════════
+REGLA #5 — NO HAY SETUP EN SST
+═══════════════════════════════════════════════════════════
+
+SST es self-service: el cliente compra online y empieza a usar de inmediato.
+NUNCA menciones costos de "setup" ni implementación para SST.
+Si el lead pregunta: no hay costo adicional, todo está incluido en la mensualidad.
+
+═══════════════════════════════════════════════════════════
+REGLA #6 — COTIZACIONES POR CORREO
+═══════════════════════════════════════════════════════════
+
+Si el lead pide una "cotización formal", "propuesta" o "algo por escrito" para SST:
+- Si ya tienes su correo (en LEAD_DATA), emite [SEND_QUOTE] con los datos.
+- Si NO tienes su correo, pídelo: "Con gusto te la mando. ¿A qué correo te la envío?"
+- Cuando te dé el correo, guárdalo en [LEAD_DATA] y emite [SEND_QUOTE].
+
+Qué datos necesita [SEND_QUOTE]: email (obligatorio), company (obligatorio), plan (obligatorio).
+Opcionales: contact_name, city, nit, plan_price (precio mensual en COP sin puntos ni símbolo).
+Ej: plan_price 600000 para Pro.
+
+═══════════════════════════════════════════════════════════
+REGLA #7 — SEÑALES DE STOP
+═══════════════════════════════════════════════════════════
+
+Estas frases indican que la conversación terminó — responde brevemente y NO sigas explicando:
+- "ya vi los planes", "voy a pensarlo", "me comunico después", "esperamos la cotización"
+- "gracias por la info", "lo consulto con mi jefe", "te escribo luego"
+
+En estos casos responde: "Perfecto, quedo pendiente. Cualquier duda me escribes." Y para.
+No repitas lo que ya dijiste ni ofrezcas más información que no te pidieron.
+
+═══════════════════════════════════════════════════════════
+REGLA #8 — ESCALADA A HUMANO
+═══════════════════════════════════════════════════════════
+
+Emite [HANDOFF_NEEDED] cuando:
+- Urgencia real: auditoría inminente, multa, accidente grave
+- Empresa >1000 empleados
+- El lead pide hablar con un humano explícitamente
+- No puedes resolver en 2 intentos consecutivos
+
+═══════════════════════════════════════════════════════════
+REGLA #9 — ANTI-PATRONES (NUNCA HAGAS ESTO)
+═══════════════════════════════════════════════════════════
+
+- NUNCA inventes clientes referencia. Los reales: AES Colombia, CFC, ECAR, Colgate-Palmolive,
+  Cajasan, Diabonos, Magnetron, Perflex, 3 Castillos.
+- NUNCA inventes precios, planes o servicios fuera del catálogo de abajo.
+- NUNCA menciones precios de otros productos en conversaciones SST.
+- NUNCA uses un correo que no te haya dado el lead explícitamente.
+- NUNCA uses markdown (negrillas, bullets, títulos) — estás en WhatsApp.
+- NUNCA propongas horas para reuniones Flow — el sistema envía horarios como botones.
+- NUNCA menciones un plan "ENTERPRISE", "BUSINESS" o cualquier otro que no esté en el catálogo.
 
 ═══════════════════════════════════════════════════════════
 TAGS DE CONTROL (invisibles, siempre al final después de "---")
@@ -154,37 +176,23 @@ TAGS DE CONTROL (invisibles, siempre al final después de "---")
 [LEAD_DATA: {"country": "...", "city": "...", "industry": "...", "employee_count": N,
   "has_contractors": true/false, "sst_process": "activo|empezando|ninguno",
   "pain_point": "...", "is_decision_maker": true/false, "name": "...",
-  "company": "...", "role": "...", "nivel_riesgo_arl": "1-5",
+  "email": "...", "company": "...", "role": "...", "nivel_riesgo_arl": "1-5",
   "numero_contratistas": N, "product_fit": "sst|flow|unknown"}]
 [PRODUCT_FIT: sst|flow]
+[PLAN_RECOMENDADO: CODIGO]  → BASIC | STARTER | PRO | PLUS | CORPORATIVO
 [SST_READY]      → lead SST listo para recibir link de compra
 [BOOKING_READY]  → lead Flow listo para demo (necesita correo en LEAD_DATA primero)
 [HANDOFF_NEEDED] → escalar a humano
+[SEND_QUOTE: {"email": "correo@empresa.com", "company": "Empresa S.A.", "plan": "pro",
+  "plan_price": 600000, "contact_name": "Juan Pérez", "city": "Bogotá", "nit": "900123456-1"}]
+  → envía cotización formal al correo del lead (solo para SST)
 
 REGLAS DE AGENDAMIENTO FLOW:
 - NUNCA propongas horas en el texto. El sistema envía horarios como botones.
 - Necesitas el correo del lead en LEAD_DATA antes de poner [BOOKING_READY].
 
-REGLAS DE HONESTIDAD:
-- NUNCA inventes clientes referencia. Los reales: AES Colombia, CFC, ECAR, Colgate-Palmolive,
-  Cajasan, Diabonos, Magnetron, Perflex, 3 Castillos.
-- NUNCA inventes precios, costos o servicios que no estén en el knowledge.
-- NUNCA prometas enviar emails o documentos que el bot no puede enviar.
-
-A continuación tienes el conocimiento completo de productos, precios y estrategia comercial:
+A continuación tienes el catálogo de planes (fuente única de verdad) y el knowledge completo del producto.
 """
-
-SYSTEM_PROMPT = SYSTEM_PROMPT_BASE + load_knowledge()
-
-# Anthropic prompt caching: el prompt completo (base + knowledge) es estático — se cachea
-# y en llamadas subsecuentes cuesta ~10% del input. Reduce costo por lead ~90%.
-CACHED_SYSTEM_BLOCKS = [
-    {
-        "type": "text",
-        "text": SYSTEM_PROMPT,
-        "cache_control": {"type": "ephemeral"},
-    }
-]
 
 
 class ConversationalAgent:
@@ -381,10 +389,22 @@ class ConversationalAgent:
         if m:
             tags["product_fit"] = m.group(1).lower()
 
+        m = re.search(r"\[SEND_QUOTE:\s*(\{.*?\})\]", tags_blob, re.DOTALL)
+        if m:
+            try:
+                tags["send_quote"] = json.loads(m.group(1))
+            except Exception as e:
+                logger.warning(f"Bad SEND_QUOTE JSON: {e}")
+
+        m = re.search(r"\[PLAN_RECOMENDADO:\s*([A-Z]+)\]", tags_blob, re.IGNORECASE)
+        if m:
+            tags["plan_recomendado"] = m.group(1).upper()
+
         # Strip any tags that may have leaked into the visible text
         clean = re.sub(
-            r"\[(SCORE_UPDATE|LEAD_DATA|BOOKING_READY|HANDOFF_NEEDED|SST_READY|PRODUCT_FIT)[^\]]*\]",
+            r"\[(SCORE_UPDATE|LEAD_DATA|BOOKING_READY|HANDOFF_NEEDED|SST_READY|PRODUCT_FIT|SEND_QUOTE|PLAN_RECOMENDADO)[^\]]*\]",
             "", clean,
+            flags=re.DOTALL,
         ).strip()
         return clean, tags
 
@@ -455,11 +475,27 @@ class ConversationalAgent:
 
         # 3) Construir contexto y llamar a Claude
         history = crm.get_message_history(conversation_id)
-        messages = self._build_messages(history, message_text)
+        # Eliminar el mensaje actual si ya fue guardado en BD antes de esta llamada
+        # (main.py guarda el inbound antes de invocar process_message)
+        if history and history[-1]["body"] == message_text:
+            history = history[:-1]
 
-        # Inyectar contexto dinámico (plantilla descargada) como bloque system
-        # adicional SIN cache_control → preserva el cache del bloque principal.
-        system_blocks = list(CACHED_SYSTEM_BLOCKS)
+        lead_ctx = build_lead_context_block(context_pre.get("lead_data") or {})
+        messages = (lead_ctx or []) + self._build_messages(history, message_text)
+
+        # Construir el system prompt: base + catálogo SST + knowledge base.
+        # El bloque completo es determinístico → Anthropic lo cachea desde la segunda llamada.
+        system_blocks = [
+            {
+                "type": "text",
+                "text": (
+                    SYSTEM_PROMPT_BASE
+                    + "\n\n" + prompt_inyectable()
+                    + "\n\n" + load_knowledge()
+                ),
+                "cache_control": {"type": "ephemeral"},
+            }
+        ]
         downloaded = (context_pre.get("downloaded_template")
                       if isinstance(context_pre, dict) else None) or {}
         tpl_title = conv.get("template_title") or downloaded.get("title")
@@ -572,6 +608,11 @@ class ConversationalAgent:
                 except Exception as e:
                     logger.warning(f"update_lead partial failure: {e}")
 
+        if tags.get("plan_recomendado"):
+            ld = context.get("lead_data") or {}
+            ld["plan_recomendado"] = tags["plan_recomendado"]
+            context["lead_data"] = ld
+
         score = tags.get("score")
         breakdown = None
         if "lead_data" in context:
@@ -632,6 +673,59 @@ class ConversationalAgent:
                 conversation_id, {"context": context, "score": score or 0}
             )
             return
+
+        # 5.3) Cotización por correo
+        if tags.get("send_quote") and not tags.get("handoff_needed"):
+            qdata = tags["send_quote"]
+            q_email = (qdata.get("email") or "").strip()
+            q_company = qdata.get("company") or (context.get("lead_data") or {}).get("company") or ""
+            q_plan = (qdata.get("plan") or "pro").lower()
+            q_price = qdata.get("plan_price")
+            q_name = qdata.get("contact_name") or (context.get("lead_data") or {}).get("name") or ""
+            q_city = qdata.get("city") or (context.get("lead_data") or {}).get("city") or ""
+            q_nit = qdata.get("nit") or ""
+
+            if q_email and "@" in q_email:
+                ok = send_quote_email(
+                    to_email=q_email,
+                    contact_name=q_name,
+                    company=q_company,
+                    plan=q_plan,
+                    plan_price=q_price,
+                    city=q_city,
+                    nit=q_nit,
+                )
+                if ok:
+                    confirm_msg = (
+                        clean
+                        or f"Listo, te envié la cotización a {q_email}. "
+                           f"Revisa también la carpeta de spam por si acaso 👌"
+                    )
+                    await whatsapp_client.send_text(phone, confirm_msg)
+                    crm.save_message(conversation_id, "outbound", confirm_msg, usage=usage_info)
+                    crm.log_activity(
+                        phone=phone,
+                        title=f"Cotización enviada por correo — Plan {q_plan.title()}",
+                        body=f"Correo: {q_email} | Empresa: {q_company} | Plan: {q_plan}",
+                    )
+                    if lead_id and q_email:
+                        try:
+                            crm.update_lead(lead_id, {"email": q_email})
+                        except Exception:
+                            pass
+                else:
+                    fallback = (
+                        clean
+                        or "Por ahora no pude enviar el correo. "
+                           "Puedes ver los planes en sst.verifty.com/planes 👋"
+                    )
+                    await whatsapp_client.send_text(phone, fallback)
+                    crm.save_message(conversation_id, "outbound", fallback, usage=usage_info)
+                crm.update_conversation(
+                    conversation_id,
+                    {"context": context, "score": score or conv.get("score", 0)},
+                )
+                return
 
         # 5.5) Routing SST: si el lead es SST y está listo, enviar link de compra
         sst_trigger = (

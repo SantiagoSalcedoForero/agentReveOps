@@ -13,7 +13,9 @@ def load_knowledge() -> str:
     """
     parts: list[str] = []
     files = [
-        "product/pricing.md",
+        # product/pricing.md excluido — contiene precios Verifty Flow (INDIVIDUAL/EQUIPO/
+        # ESSENTIAL/setup $1M-$4M) que contradicen los precios SST de REGLA #3 en agent.py.
+        # Archivo renombrado a _pricing_legacy.md para preservarlo.
         "product/modules.md",
         "product/verifty_sst.md",
         "product/objection_handling.md",

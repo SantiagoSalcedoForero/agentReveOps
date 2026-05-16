@@ -1,6 +1,36 @@
 # Deploy del bot de Verifty a Oracle Cloud (OCI)
 
-## Antes de arrancar — prerequisitos
+## Datos del servidor actual (producción)
+
+| Campo | Valor |
+|-------|-------|
+| Proveedor | Oracle Cloud (OCI) |
+| IP pública | `137.131.189.224` |
+| Usuario SSH | `ubuntu` |
+| Llave SSH | `~/.ssh/oci_verifty_bot` |
+| Dominio | `bot.verifty.com` |
+| Directorio en servidor | `/home/ubuntu/verifty-bot/` |
+| Deploy | rsync (NO git — el repo no está clonado en el server) |
+
+### Conectarse al servidor
+
+```bash
+ssh -i ~/.ssh/oci_verifty_bot ubuntu@137.131.189.224
+```
+
+### Hacer deploy (el comando habitual)
+
+Desde la raíz del proyecto en tu Mac:
+
+```bash
+./deploy/sync.sh ubuntu@137.131.189.224
+```
+
+Eso hace rsync + docker compose up --build automáticamente. Tarda ~30 segundos.
+
+---
+
+## Antes de arrancar — prerequisitos (setup inicial, ya hecho)
 
 1. **VM en OCI** (Ubuntu 22.04 o 24.04 LTS recomendado, ARM Ampere A1 gratis o x86)
 2. **Dominio apuntando a la VM** (ej: `bot.verifty.com` → A record → IP pública de la VM)
