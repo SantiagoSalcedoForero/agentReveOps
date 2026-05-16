@@ -129,8 +129,7 @@ y VERA lo hace. Es como tener un especialista SST trabajando por ti 24/7.
 4. **NUNCA agendar demo para leads SST** — la compra es directa online
 5. Si el lead tiene dudas después del link → continuar conversación, escalar a humano si es complejo
 
-## Diferenciador clave vs Verifty Flow
+## Para empresas grandes (>130 trabajadores)
 
-- **Verifty SST**: gestión administrativa del SG-SST (documentos, indicadores, normativa)
-- **Verifty Flow**: automatización de procesos operativos (ingreso de contratistas, permisos de trabajo)
-- Son productos complementarios: una empresa grande puede necesitar ambos
+Para empresas con más de 130 trabajadores o necesidades avanzadas de automatización
+operativa, el equipo comercial ofrece propuestas a la medida. Usar escalar_a_demo.

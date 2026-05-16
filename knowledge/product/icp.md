@@ -2,23 +2,24 @@
 
 ## REGLA MAESTRA DE SEGMENTACIÓN
 
-Verifty tiene DOS productos. El bot debe identificar cuál necesita el lead ANTES de intentar
-agendar demo o enviar link de compra.
+Verifty SST tiene planes para todos los tamaños: Basic (≤4), Starter (≤10), Pro (≤50),
+Plus (≤130), Corporativo (>130). El bot recomienda el plan correcto por número de trabajadores.
 
-| Producto | ICP | Acción del bot |
-|----------|-----|----------------|
-| **Verifty SST** | Empresa 5-130 empleados buscando cumplir normativa SST, o profesional/especialista SST | Calificar → [SST_READY] → link de compra (https://sst.verifty.com/planes) |
-| **Verifty Flow** | Empresa grande (+130 emp.) o con muchos contratistas buscando automatizar procesos | Calificar → [BOOKING_READY] → agendar demo |
+| Perfil | Acción del bot |
+|--------|----------------|
+| Empresa 1-130 trabajadores buscando gestionar SG-SST | Calificar → recomendar plan → link de compra |
+| Consultor/especialista SST externo | Calificar → recomendar Pro mínimo → link de compra |
+| Empresa >130 trabajadores o foco en procesos operativos | Calificar → escalar_a_demo |
 
-## Matriz de calificación por tamaño — VERIFTY FLOW
+## Matriz de calificación por tamaño
 
-| Tamaño empresa | Trabajadores | Estrategia bot | Plan sugerido |
-|----------------|-------------|----------------|---------------|
-| Micro | < 20 | Solo Flow si tiene contratistas masivos, sino → evaluar SST | INDIVIDUAL |
-| Pequeña | 20-130 | Verificar si necesitan SST o Flow. Si mencionan contratistas → Flow | EQUIPO / ESSENTIAL |
-| Mediana | 130-500 | Calificar + agendar reu Flow (bot puede cotizar Essential/Advanced) | ESSENTIAL / ADVANCED |
-| Grande | 500-1500 | **Agendar reu sin precios** | BUSINESS |
-| Enterprise | 1500+ | **Agendar reu sin precios** | CORPORATIVO / PLATINUM |
+| Tamaño empresa | Trabajadores | Estrategia bot |
+|----------------|-------------|----------------|
+| Micro | ≤4 | Recomendar BASIC |
+| Pequeña | 5-10 | Recomendar STARTER |
+| Mediana baja | 11-50 | Recomendar PRO |
+| Mediana alta | 51-130 | Recomendar PLUS |
+| Grande | >130 | Escalar a demo con equipo comercial |
 
 ## Sectores prioritarios (alta conversión histórica)
 

@@ -48,9 +48,9 @@ TOOLS: list[dict] = [
     {
         "name": "escalar_a_demo",
         "description": (
-            "Agenda una demo con el equipo comercial para leads Verifty Flow "
-            "(>130 empleados, ≥10 contratistas, proceso operativo complejo) "
-            "o Corporativo SST (empleados ilimitados, API, SSO). "
+            "Agenda una demo con el equipo comercial para leads con >130 empleados, "
+            "≥10 contratistas, proceso operativo complejo, leads internacionales ≥70 "
+            "trabajadores, o Corporativo SST (ilimitados, API, SSO). "
             "NUNCA propongas horarios en el texto — el sistema los envía como botones."
         ),
         "input_schema": {
@@ -63,6 +63,7 @@ TOOLS: list[dict] = [
                         "diez_o_mas_contratistas",
                         "proceso_operativo_complejo",
                         "corporativo_sst",
+                        "lead_internacional_grande",
                     ],
                     "description": "Razón principal por la que el lead necesita demo.",
                 },

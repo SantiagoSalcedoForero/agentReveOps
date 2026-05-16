@@ -142,6 +142,74 @@ async def stats_daily(request: Request, days: int = 30):
     return r.data or []
 
 
+@app.get("/admin/stats/cost-vs-conversion")
+async def stats_cost_vs_conversion(request: Request, days: int = 14):
+    """Últimos N días: conversaciones, costo total, leads calificados, links SST enviados.
+    Permite medir ROI del upgrade a Sonnet vs Haiku.
+    """
+    _require_admin_token(request)
+    from datetime import timedelta
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    try:
+        msgs_r = (
+            crm.sb.table("whatsapp_messages")
+            .select("conversation_id, cost_usd, created_at")
+            .gte("created_at", cutoff)
+            .eq("direction", "outbound")
+            .execute()
+        )
+        convs_r = (
+            crm.sb.table("whatsapp_conversations")
+            .select("id, status, final_score, created_at")
+            .gte("created_at", cutoff)
+            .execute()
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Query failed: {e}")
+
+    msgs = msgs_r.data or []
+    convs = convs_r.data or []
+
+    cost_by_day: dict[str, float] = {}
+    msgs_by_day: dict[str, int] = {}
+    for m in msgs:
+        day = (m.get("created_at") or "")[:10]
+        cost_by_day[day] = cost_by_day.get(day, 0.0) + (m.get("cost_usd") or 0.0)
+        msgs_by_day[day] = msgs_by_day.get(day, 0) + 1
+
+    conv_by_day: dict[str, int] = {}
+    qualified_by_day: dict[str, int] = {}
+    sst_link_by_day: dict[str, int] = {}
+    for c in convs:
+        day = (c.get("created_at") or "")[:10]
+        conv_by_day[day] = conv_by_day.get(day, 0) + 1
+        if (c.get("final_score") or 0) >= 8:
+            qualified_by_day[day] = qualified_by_day.get(day, 0) + 1
+        if c.get("status") in ("sst_link_sent", "booking_confirmed"):
+            sst_link_by_day[day] = sst_link_by_day.get(day, 0) + 1
+
+    all_days = sorted(
+        set(list(cost_by_day) + list(conv_by_day)),
+        reverse=True,
+    )
+    result = []
+    for day in all_days:
+        total_cost = round(cost_by_day.get(day, 0.0), 4)
+        n_convs = conv_by_day.get(day, 0)
+        n_qual = qualified_by_day.get(day, 0)
+        n_links = sst_link_by_day.get(day, 0)
+        result.append({
+            "date": day,
+            "conversaciones": n_convs,
+            "costo_total_usd": total_cost,
+            "costo_promedio_usd": round(total_cost / n_convs, 6) if n_convs else 0,
+            "leads_calificados": n_qual,
+            "costo_por_lead_calificado_usd": round(total_cost / n_qual, 4) if n_qual else None,
+            "sst_links_enviados": n_links,
+        })
+    return result
+
+
 @app.get("/admin/stats/conversation/{conversation_id}")
 async def stats_conversation(conversation_id: str, request: Request):
     """Costo y métricas detalladas de UNA conversación."""

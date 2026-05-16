@@ -12,6 +12,7 @@ from app.pricing.catalog import PLANES_BASE, formato_cop, prompt_inyectable
 from app.bot.lead_context import build_lead_context_block
 from app.bot.tools.schemas import TOOLS
 from app.bot.tools.dispatcher import dispatch_tool_use
+from app.bot.validators import detectar_palabras_prohibidas
 from app.logger import get_logger
 
 logger = get_logger(__name__)
@@ -200,6 +201,15 @@ class WebChatAgent:
             context["lead_data"] = ld
 
         crm.save_message(conversation_id, "outbound", clean)
+
+        # M4.1 — validador modo monitoreo
+        if clean:
+            palabras_malas = detectar_palabras_prohibidas(clean)
+            if palabras_malas:
+                logger.warning(
+                    f"[validator] Palabras prohibidas en webchat: "
+                    f"{palabras_malas} conv={conversation_id} texto={clean[:200]}"
+                )
 
         # Flow, escalada o cotización → handoff a WhatsApp (webchat no envía emails)
         if tags.get("booking_ready") or tags.get("handoff_needed") or tags.get("send_quote"):

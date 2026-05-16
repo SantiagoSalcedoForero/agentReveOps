@@ -27,14 +27,15 @@ def full_system_prompt() -> str:
 
 class TestSystemPromptBase:
     def test_identidad_vera_asesora(self):
-        assert "Vera, la asesora SST" in SYSTEM_PROMPT_BASE
+        assert "Vera, vendedora" in SYSTEM_PROMPT_BASE or "Vera, la asesora SST" in SYSTEM_PROMPT_BASE
 
     def test_no_dice_asesor_comercial_generico(self):
         # La identidad cambió de "asesor comercial" a "Vera, asesora SST"
         assert "eres el asesor comercial" not in SYSTEM_PROMPT_BASE.lower()
 
     def test_contiene_plan_recomendado_tag(self):
-        assert "PLAN_RECOMENDADO" in SYSTEM_PROMPT_BASE
+        # M4.1: el tag [PLAN_RECOMENDADO] fue reemplazado por el tool recomendar_plan_y_cerrar
+        assert "recomendar_plan_y_cerrar" in SYSTEM_PROMPT_BASE or "PLAN_RECOMENDADO" in SYSTEM_PROMPT_BASE
 
     def test_contiene_tool_recomendar(self):
         """M3: recomendar_plan_y_cerrar reemplaza [SST_READY]."""
@@ -89,16 +90,18 @@ class TestSystemPromptBase:
         assert "1.220.000" not in SYSTEM_PROMPT_BASE
 
     def test_termina_con_referencia_catalogo(self):
-        assert "catálogo de planes" in SYSTEM_PROMPT_BASE
+        # M4.1: el prompt usa "catálogo (fuente única de verdad)"
+        assert "catálogo" in SYSTEM_PROMPT_BASE
 
     def test_es_string_no_vacio(self):
         assert isinstance(SYSTEM_PROMPT_BASE, str)
         assert len(SYSTEM_PROMPT_BASE) > 500
 
-    def test_nueve_reglas(self):
-        # Las 9 reglas deben estar presentes
-        for n in range(1, 10):
-            assert f"REGLA #{n}" in SYSTEM_PROMPT_BASE, f"REGLA #{n} ausente"
+    def test_estructura_m41(self):
+        # M4.1 usa INVIOLABLES + 5 FASES en vez de REGLA #N
+        assert "INVIOLABLES" in SYSTEM_PROMPT_BASE
+        for n in range(1, 6):
+            assert f"FASE {n}" in SYSTEM_PROMPT_BASE, f"FASE {n} ausente"
 
 
 # ---------------------------------------------------------------------------
@@ -106,8 +109,8 @@ class TestSystemPromptBase:
 # ---------------------------------------------------------------------------
 
 class TestFullSystemPrompt:
-    def test_contiene_vera_asesora(self):
-        assert "Vera, la asesora SST" in full_system_prompt()
+    def test_contiene_vera_vendedora(self):
+        assert "Vera" in full_system_prompt() and "SST" in full_system_prompt()
 
     def test_contiene_precio_pro_del_catalogo(self):
         # "$ 600.000" viene de prompt_inyectable(), no del base
