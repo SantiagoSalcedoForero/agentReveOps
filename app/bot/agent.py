@@ -13,6 +13,8 @@ from app.bot.knowledge_loader import load_knowledge
 from app.pricing.catalog import prompt_inyectable
 from app.bot.lead_context import build_lead_context_block
 from app.bot.pricing import calculate_cost_usd
+from app.bot.tools.schemas import TOOLS
+from app.bot.tools.dispatcher import dispatch_tool_use
 from app.outbound.quote import send_quote_email
 from app.logger import get_logger
 import time
@@ -70,10 +72,10 @@ Manejas dos rutas:
 VERIFTY SST — software SG-SST (21 módulos + VERA IA)
 - Para: empresas 5-130 empleados que necesitan cumplir Res. 0312/2019, y consultores SST
 - Compra directa online, sin reunión ni intermediarios
-- Ruta: calificar → recomendar UN plan específico → [PLAN_RECOMENDADO: CODIGO] → [SST_READY]
+- Ruta: calificar → recomendar UN plan específico → usar recomendar_plan_y_cerrar
 
 VERIFTY FLOW — automatización de procesos operativos (para +130 empleados o ≥10 contratistas)
-- Ruta: calificar → [BOOKING_READY] → el sistema agenda una demo con el equipo
+- Ruta: calificar → usar escalar_a_demo → el sistema agenda una demo con el equipo
 
 Segmentación en orden:
 1. ¿Consultor/especialista/asesor SST externo? → SST
@@ -107,7 +109,7 @@ REGLA #4 — CIERRE CON LINK
 ═══════════════════════════════════════════════════════════
 
 Cuando el lead SST confirma que quiere empezar:
-- Emite [SST_READY] para que el sistema envíe el link de compra automático.
+- Usa la herramienta recomendar_plan_y_cerrar para que el sistema envíe el link de compra.
 - Colombia → precios en COP. Otro país → en USD. Nunca mezcles monedas.
 - Los precios SST son fijos — no hay negociación ni descuentos adicionales.
 - Si el lead quiere ver todos los planes antes de decidir: sst.verifty.com/planes
@@ -126,13 +128,9 @@ REGLA #6 — COTIZACIONES POR CORREO
 ═══════════════════════════════════════════════════════════
 
 Si el lead pide una "cotización formal", "propuesta" o "algo por escrito" para SST:
-- Si ya tienes su correo (en LEAD_DATA), emite [SEND_QUOTE] con los datos.
+- Si ya tienes su correo (en LEAD_DATA), usa la herramienta pedir_cotizacion_por_correo.
 - Si NO tienes su correo, pídelo: "Con gusto te la mando. ¿A qué correo te la envío?"
-- Cuando te dé el correo, guárdalo en [LEAD_DATA] y emite [SEND_QUOTE].
-
-Qué datos necesita [SEND_QUOTE]: email (obligatorio), company (obligatorio), plan (obligatorio).
-Opcionales: contact_name, city, nit, plan_price (precio mensual en COP sin puntos ni símbolo).
-Ej: plan_price 600000 para Pro.
+- Cuando te dé el correo, guárdalo en [LEAD_DATA] y usa pedir_cotizacion_por_correo.
 
 ═══════════════════════════════════════════════════════════
 REGLA #7 — SEÑALES DE STOP
@@ -149,7 +147,7 @@ No repitas lo que ya dijiste ni ofrezcas más información que no te pidieron.
 REGLA #8 — ESCALADA A HUMANO
 ═══════════════════════════════════════════════════════════
 
-Emite [HANDOFF_NEEDED] cuando:
+Usa escalar_a_humano cuando:
 - Urgencia real: auditoría inminente, multa, accidente grave
 - Empresa >1000 empleados
 - El lead pide hablar con un humano explícitamente
@@ -169,8 +167,35 @@ REGLA #9 — ANTI-PATRONES (NUNCA HAGAS ESTO)
 - NUNCA menciones un plan "ENTERPRISE", "BUSINESS" o cualquier otro que no esté en el catálogo.
 
 ═══════════════════════════════════════════════════════════
-TAGS DE CONTROL (invisibles, siempre al final después de "---")
+HERRAMIENTAS DISPONIBLES — ACCIONES TERMINALES
 ═══════════════════════════════════════════════════════════
+
+Tienes 4 herramientas para acciones terminales. El sistema las ejecuta automáticamente.
+
+recomendar_plan_y_cerrar — Lead SST listo para comprar self-serve
+  Cuándo: tienes empleados + sector + el lead confirma que quiere empezar
+  Parámetros: plan (BASIC|STARTER|PRO|PLUS), ciclo (mensual|anual), razon_eleccion (≤200 chars)
+  razon_eleccion: basa en perfil del lead (empleados, módulos, sector).
+  NUNCA en normas, multas, Mintrabajo ni obligaciones ARL.
+
+escalar_a_demo — Lead Flow o Corporativo SST que necesita reunión
+  Cuándo: >130 empleados, ≥10 contratistas, proceso operativo complejo, o Corporativo SST
+  Parámetros: motivo, num_empleados (opcional), pais (opcional)
+  NUNCA propongas horarios en el texto — el sistema envía los disponibles.
+
+pedir_cotizacion_por_correo — Lead pide propuesta formal por escrito
+  Cuándo: el lead pide cotización o propuesta y ya tienes su correo
+  Parámetros: email, plan, company (todos obligatorios), contact_name (opcional)
+
+escalar_a_humano — Escalada a asesor humano
+  Cuándo: urgencia real, lead pide humano explícitamente, o 2 intentos sin resolver
+  Parámetros: motivo, resumen_para_humano (≤300 chars)
+
+═══════════════════════════════════════════════════════════
+TAGS DE DATOS (solo datos internos — siempre al final después de "---")
+═══════════════════════════════════════════════════════════
+
+Emite estos tags en el texto incluso cuando uses una herramienta:
 
 [SCORE_UPDATE: N]  → N entre 0 y 15
 [LEAD_DATA: {"country": "...", "city": "...", "industry": "...", "employee_count": N,
@@ -179,17 +204,7 @@ TAGS DE CONTROL (invisibles, siempre al final después de "---")
   "email": "...", "company": "...", "role": "...", "nivel_riesgo_arl": "1-5",
   "numero_contratistas": N, "product_fit": "sst|flow|unknown"}]
 [PRODUCT_FIT: sst|flow]
-[PLAN_RECOMENDADO: CODIGO]  → BASIC | STARTER | PRO | PLUS | CORPORATIVO
-[SST_READY]      → lead SST listo para recibir link de compra
-[BOOKING_READY]  → lead Flow listo para demo (necesita correo en LEAD_DATA primero)
-[HANDOFF_NEEDED] → escalar a humano
-[SEND_QUOTE: {"email": "correo@empresa.com", "company": "Empresa S.A.", "plan": "pro",
-  "plan_price": 600000, "contact_name": "Juan Pérez", "city": "Bogotá", "nit": "900123456-1"}]
-  → envía cotización formal al correo del lead (solo para SST)
-
-REGLAS DE AGENDAMIENTO FLOW:
-- NUNCA propongas horas en el texto. El sistema envía horarios como botones.
-- Necesitas el correo del lead en LEAD_DATA antes de poner [BOOKING_READY].
+[PLAN_RECOMENDADO: CODIGO]  → BASIC | STARTER | PRO | PLUS | CORPORATIVO (respaldo informativo)
 
 A continuación tienes el catálogo de planes (fuente única de verdad) y el knowledge completo del producto.
 """
@@ -528,9 +543,18 @@ class ConversationalAgent:
                 max_tokens=600,
                 system=system_blocks,
                 messages=messages,
+                tools=TOOLS,
             )
             latency_ms = int((time.perf_counter() - t0) * 1000)
-            raw = resp.content[0].text if resp.content else ""
+            # Extraer bloques de texto y tool calls del contenido mixto
+            raw_parts: list[str] = []
+            tool_use_blocks: list[Any] = []
+            for block in (resp.content or []):
+                if hasattr(block, "text"):
+                    raw_parts.append(block.text)
+                elif hasattr(block, "name"):
+                    tool_use_blocks.append(block)
+            raw = "\n".join(raw_parts)
             usage = getattr(resp, "usage", None)
             if usage:
                 cr = getattr(usage, "cache_read_input_tokens", 0) or 0
@@ -569,6 +593,12 @@ class ConversationalAgent:
             return
 
         clean, tags = self._parse_response(raw)
+
+        # Despachar tool calls (M3) — fusiona sobre los tags del texto
+        for tc in tool_use_blocks:
+            tool_tags = dispatch_tool_use(tc.name, tc.input, context_pre)
+            tags.update(tool_tags)
+
         logger.info(f"Bot tags for {conversation_id}: {tags}")
 
         # 4) Aplicar tags al CRM
@@ -728,10 +758,12 @@ class ConversationalAgent:
                 )
                 return
 
-        # 5.5) Routing SST: si el lead es SST y está listo, enviar link de compra
+        # 5.5) Routing SST: si el lead es SST y está listo, enviar link de compra.
+        # Usa solo sst_ready (no booking_ready) para evitar conflicto con escalar_a_demo.
+        # El guard M2.3 convierte booking_ready→sst_ready si aplica, antes de este punto.
         sst_trigger = (
             product_fit == "verifty_sst"
-            and (tags.get("sst_ready") or tags.get("booking_ready"))
+            and tags.get("sst_ready")
         )
         if sst_trigger and current_status not in ("sst_link_sent", "booking_confirmed"):
             if clean:

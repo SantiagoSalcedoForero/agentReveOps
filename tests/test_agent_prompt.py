@@ -36,17 +36,28 @@ class TestSystemPromptBase:
     def test_contiene_plan_recomendado_tag(self):
         assert "PLAN_RECOMENDADO" in SYSTEM_PROMPT_BASE
 
-    def test_contiene_sst_ready_tag(self):
-        assert "SST_READY" in SYSTEM_PROMPT_BASE
+    def test_contiene_tool_recomendar(self):
+        """M3: recomendar_plan_y_cerrar reemplaza [SST_READY]."""
+        assert "recomendar_plan_y_cerrar" in SYSTEM_PROMPT_BASE
 
-    def test_contiene_booking_ready_tag(self):
-        assert "BOOKING_READY" in SYSTEM_PROMPT_BASE
+    def test_contiene_tool_escalar_demo(self):
+        """M3: escalar_a_demo reemplaza [BOOKING_READY]."""
+        assert "escalar_a_demo" in SYSTEM_PROMPT_BASE
 
-    def test_contiene_handoff_needed_tag(self):
-        assert "HANDOFF_NEEDED" in SYSTEM_PROMPT_BASE
+    def test_contiene_tool_escalar_humano(self):
+        """M3: escalar_a_humano reemplaza [HANDOFF_NEEDED]."""
+        assert "escalar_a_humano" in SYSTEM_PROMPT_BASE
 
-    def test_contiene_send_quote_tag(self):
-        assert "SEND_QUOTE" in SYSTEM_PROMPT_BASE
+    def test_contiene_tool_cotizacion(self):
+        """M3: pedir_cotizacion_por_correo reemplaza [SEND_QUOTE]."""
+        assert "pedir_cotizacion_por_correo" in SYSTEM_PROMPT_BASE
+
+    def test_no_contiene_tags_terminales_legacy(self):
+        """Los tags terminales ya no están en el prompt base (son herramientas)."""
+        assert "[SST_READY]" not in SYSTEM_PROMPT_BASE
+        assert "[BOOKING_READY]" not in SYSTEM_PROMPT_BASE
+        assert "[HANDOFF_NEEDED]" not in SYSTEM_PROMPT_BASE
+        assert "[SEND_QUOTE" not in SYSTEM_PROMPT_BASE
 
     def test_setup_solo_en_contexto_prohibitivo(self):
         """'setup' solo puede aparecer en el contexto de prohibición, nunca como costo."""

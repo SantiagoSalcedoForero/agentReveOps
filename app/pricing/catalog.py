@@ -39,6 +39,13 @@ class PlanBase:
     descripcion_corta:    str            # 1 línea para el bot
     razon_eleccion:       str            # frase exacta que usa el bot al recomendarlo
 
+    @property
+    def precio_dia_cop(self) -> Optional[int]:
+        """Precio diario aproximado (precio_mensual / 30), redondeado al entero más cercano."""
+        if self.precio_mensual_cop is None:
+            return None
+        return round(self.precio_mensual_cop / 30)
+
 
 @dataclass(frozen=True)
 class PlanVera:

@@ -10,6 +10,8 @@ from app.bot.knowledge_loader import load_knowledge
 from app.bot.agent import SYSTEM_PROMPT_BASE
 from app.pricing.catalog import PLANES_BASE, formato_cop, prompt_inyectable
 from app.bot.lead_context import build_lead_context_block
+from app.bot.tools.schemas import TOOLS
+from app.bot.tools.dispatcher import dispatch_tool_use
 from app.logger import get_logger
 
 logger = get_logger(__name__)
@@ -153,14 +155,22 @@ class WebChatAgent:
             }
         ]
 
+        tool_use_blocks: list = []
         try:
             response = self.anthropic.messages.create(
                 model=settings.ANTHROPIC_MODEL,
                 max_tokens=600,
                 system=system_blocks,
                 messages=msgs,
+                tools=TOOLS,
             )
-            raw = response.content[0].text
+            raw_parts: list[str] = []
+            for block in (response.content or []):
+                if hasattr(block, "text"):
+                    raw_parts.append(block.text)
+                elif hasattr(block, "name"):
+                    tool_use_blocks.append(block)
+            raw = "\n".join(raw_parts)
         except Exception as e:
             logger.exception(f"Claude API error in webchat: {e}")
             return {
@@ -169,6 +179,12 @@ class WebChatAgent:
             }
 
         clean, tags = self._parse_tags(raw)
+
+        # Despachar tool calls (M3)
+        for tc in tool_use_blocks:
+            tool_tags = dispatch_tool_use(tc.name, tc.input, context)
+            tags.update(tool_tags)
+
         logger.info(f"Webchat tags for {conversation_id}: {tags}")
 
         if tags.get("lead_data"):
@@ -182,8 +198,8 @@ class WebChatAgent:
 
         crm.save_message(conversation_id, "outbound", clean)
 
-        # Flow o escalada → handoff a WhatsApp
-        if tags.get("booking_ready") or tags.get("handoff_needed"):
+        # Flow, escalada o cotización → handoff a WhatsApp (webchat no envía emails)
+        if tags.get("booking_ready") or tags.get("handoff_needed") or tags.get("send_quote"):
             wa_url = _make_whatsapp_url(context)
             handoff_text = clean or (
                 "Para este caso lo mejor es hablar con nuestro equipo directamente. "
