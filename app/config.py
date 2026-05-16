@@ -33,6 +33,9 @@ class Settings:
     OUTBOUND_DEMO_NUDGE_TEMPLATE = os.getenv(
         "OUTBOUND_DEMO_NUDGE_TEMPLATE", "verifty_demo_nudge"
     )
+    OUTBOUND_SST_FOLLOWUP_TEMPLATE = os.getenv(
+        "OUTBOUND_SST_FOLLOWUP_TEMPLATE", "verifty_sst_followup"
+    )
     DEMO_NUDGE_DELAY_MINUTES = int(
         os.getenv("DEMO_NUDGE_DELAY_MINUTES", "35")
     )

@@ -200,6 +200,100 @@ PLANES_VERA: list[PlanVera] = [
 
 DESCUENTO_ANUAL = 0.10  # 10% según sst.verifty.com/planes
 
+# ---------------------------------------------------------------------------
+# Módulos por plan — Modelo Híbrido C (M4)
+# ---------------------------------------------------------------------------
+# `incluye`: módulos que ESTE plan agrega sobre el anterior.
+# `no_incluye`: módulos de planes superiores que este plan NO tiene.
+# Usado para: (a) inyectar en el system prompt y (b) encontrar el plan mínimo
+# que tiene un módulo dado cuando el lead lo menciona explícitamente.
+# ---------------------------------------------------------------------------
+
+MODULOS_POR_PLAN: dict[str, dict[str, list[str]]] = {
+    "BASIC": {
+        "incluye": [
+            "Formularios y firmas digitales",
+            "Planes de acción PHVA",
+            "Inspecciones de campo con fotos",
+            "Reportes de actos y condiciones inseguras",
+            "Gestor documental (250 MB)",
+            "Cronograma SST",
+            "EPP e inventario",
+        ],
+        "no_incluye": [
+            "Caminatas de seguridad",
+            "Accidentes e incidentes (Res. 1401/2007)",
+            "Ausentismo e incapacidades",
+            "Capacitaciones y plan anual",
+            "Matriz IPEVR GTC-45",
+            "Salud ocupacional y exámenes médicos",
+            "Objetivos e indicadores SST",
+            "Reportes ejecutivos para gerencia",
+            "Gestión de contratistas",
+            "Multi-sede",
+        ],
+    },
+    "STARTER": {
+        "incluye": [
+            "Caminatas de seguridad",
+            "Accidentes e incidentes (Res. 1401/2007)",
+            "Ausentismo e incapacidades (CIE-10)",
+            "Capacitaciones y plan anual automático",
+            "Perfil sociodemográfico de la plantilla",
+            "Matriz IPEVR GTC-45 (identificación de peligros)",
+            "Dashboard avanzado con alertas",
+        ],
+        "no_incluye": [
+            "Programas SST (vigilancia epidemiológica)",
+            "Salud ocupacional y exámenes médicos",
+            "Objetivos e indicadores SST (Res. 0312/2019)",
+            "Reportes ejecutivos para gerencia",
+            "Gestión de contratistas",
+            "Multi-sede",
+            "Auditorías internas ISO 45001",
+        ],
+    },
+    "PRO": {
+        "incluye": [
+            "Programas SST (vigilancia epidemiológica, EPP, emergencias)",
+            "Salud ocupacional y exámenes médicos",
+            "Objetivos e indicadores SST (Res. 0312/2019)",
+            "Reportes ejecutivos para gerencia",
+        ],
+        "no_incluye": [
+            "Multi-sede (hasta 10 centros de trabajo)",
+            "Gestión de contratistas",
+            "Auditorías internas ISO 45001",
+            "Matriz de requisitos legales",
+            "API para integraciones",
+            "SSO empresarial",
+        ],
+    },
+    "PLUS": {
+        "incluye": [
+            "Multi-sede (hasta 10 centros de trabajo)",
+            "Gestión de contratistas",
+            "Auditorías internas ISO 45001",
+            "Matriz de requisitos legales",
+        ],
+        "no_incluye": [
+            "Sedes y trabajadores ilimitados",
+            "API para integraciones",
+            "SSO empresarial",
+            "Soporte dedicado e implementación",
+        ],
+    },
+    "CORPORATIVO": {
+        "incluye": [
+            "Sedes y trabajadores ilimitados",
+            "API para integraciones empresariales",
+            "SSO empresarial",
+            "Soporte dedicado e implementación",
+        ],
+        "no_incluye": [],
+    },
+}
+
 _PLANES_BASE_IDX: dict[str, PlanBase] = {p.codigo.upper(): p for p in PLANES_BASE}
 _PLANES_VERA_IDX: dict[str, PlanVera] = {p.codigo.upper(): p for p in PLANES_VERA}
 
@@ -211,6 +305,29 @@ _PLANES_VERA_IDX: dict[str, PlanVera] = {p.codigo.upper(): p for p in PLANES_VER
 def get_plan_base(codigo: str) -> Optional[PlanBase]:
     """Lookup case-insensitive por código. Retorna None si no existe."""
     return _PLANES_BASE_IDX.get(codigo.upper())
+
+
+def get_modulos_plan(codigo: str) -> dict[str, list[str]]:
+    """Retorna {incluye: [...], no_incluye: [...]} para el plan dado."""
+    return MODULOS_POR_PLAN.get(codigo.upper(), {"incluye": [], "no_incluye": []})
+
+
+def encontrar_plan_minimo_con_modulo(nombre_modulo: str) -> Optional[PlanBase]:
+    """Encuentra el plan más barato que incluye el módulo dado (búsqueda por substring).
+
+    Recorre PLANES_BASE de menor a mayor precio. Retorna el primero cuya lista
+    `incluye` en MODULOS_POR_PLAN contiene `nombre_modulo` (case-insensitive).
+    Retorna None si ningún plan lo incluye.
+
+    Usado en el Modelo Híbrido C: cuando el lead menciona explícitamente un módulo,
+    se puede encontrar el plan mínimo que lo cubre y compararlo con el recomendado.
+    """
+    keyword = nombre_modulo.lower()
+    for plan in PLANES_BASE:
+        modulos = MODULOS_POR_PLAN.get(plan.codigo, {}).get("incluye", [])
+        if any(keyword in m.lower() for m in modulos):
+            return plan
+    return None
 
 
 def get_plan_vera(codigo: str) -> Optional[PlanVera]:
@@ -351,6 +468,13 @@ def prompt_inyectable() -> str:
         )
         lines.append(f"    {p.descripcion_corta}")
         lines.append(f"    Cuándo: {p.razon_eleccion}")
+        mods = MODULOS_POR_PLAN.get(p.codigo, {})
+        if mods.get("incluye"):
+            lines.append(f"    Incluye: {' · '.join(mods['incluye'])}")
+        if mods.get("no_incluye"):
+            lines.append(
+                f"    NO incluye (plan superior): {' · '.join(mods['no_incluye'])}"
+            )
         lines.append("")
 
     lines += [

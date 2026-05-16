@@ -132,9 +132,10 @@ class TestFullSystemPrompt:
 
     def test_tamano_base_mas_catalogo(self):
         # El bloque base + catálogo (sin knowledge) debe ser compacto.
+        # M4 añadió MODULOS_POR_PLAN al catálogo, lo que amplía el tamaño intencionalmente.
         # El knowledge completo es grande por diseño (~50k chars) y no se limita aquí.
         parte_fija = SYSTEM_PROMPT_BASE + "\n\n" + prompt_inyectable()
-        assert len(parte_fija) < 15_000, f"base + catálogo demasiado largo: {len(parte_fija)} chars"
+        assert len(parte_fija) < 22_000, f"base + catálogo demasiado largo: {len(parte_fija)} chars"
 
     def test_corporativo_sin_999_sedes(self):
         # El catálogo debe mostrar "ilimitadas" para CORPORATIVO, no "999 sedes"

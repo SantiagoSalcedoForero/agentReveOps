@@ -71,9 +71,50 @@ async def _handle_contact_form_greeting(row: dict) -> tuple[bool, str]:
     return conv_id is not None, "greeting_sent"
 
 
+async def _handle_sst_link_followup(row: dict) -> tuple[bool, str]:
+    """Follow-up 24h a leads SST que recibieron el link de compra pero no han pagado."""
+    lead_id = row.get("lead_id")
+
+    # Skip si ya se pagó
+    if lead_id:
+        try:
+            lead = crm.get_lead(lead_id)
+            if lead and lead.get("paid_at"):
+                return True, "already_paid"
+            if lead and lead.get("followup_link_no_pago_enviado_at"):
+                return True, "already_sent"
+        except Exception:
+            pass
+
+    payload = row.get("payload") or {}
+    lead_data = payload.get("lead_data") or {}
+    first_name = (lead_data.get("name") or "").split(" ")[0] or "hola"
+
+    conv_id = await start_outbound_conversation(
+        phone=row["phone"],
+        lead_data=lead_data,
+        source_form="sst_link_followup",
+        template_name=settings.OUTBOUND_SST_FOLLOWUP_TEMPLATE,
+        template_params=[first_name],
+    )
+    ok = conv_id is not None
+
+    if ok and lead_id:
+        try:
+            crm.update_lead(
+                lead_id,
+                {"followup_link_no_pago_enviado_at": datetime.now(timezone.utc).isoformat()},
+            )
+        except Exception as e:
+            logger.warning(f"[followup] followup_link_no_pago_enviado_at update failed: {e}")
+
+    return ok, "followup_sent"
+
+
 HANDLERS = {
     "demo_no_show": _handle_demo_no_show,
     "contact_form_greeting": _handle_contact_form_greeting,
+    "sst_link_followup": _handle_sst_link_followup,
 }
 
 
