@@ -761,6 +761,23 @@ class ConversationalAgent:
                 except Exception as e:
                     logger.warning(f"auto email update failed: {e}")
 
+        # Guard: BOOKING_READY solo es válido para leads CORPORATIVO.
+        # Aplica tanto a tags del LLM como a force_booking — ambos pasan por aquí.
+        # Si el plan es conocido y no es CORPORATIVO, convertimos a SST_READY.
+        plan_recomendado_str = (
+            (context.get("lead_data") or {}).get("plan_recomendado", "")
+            or tags.get("plan_recomendado", "")
+            or ""
+        ).upper()
+        es_plan_no_corporativo = bool(plan_recomendado_str) and plan_recomendado_str != "CORPORATIVO"
+        if tags.get("booking_ready") and es_plan_no_corporativo:
+            logger.warning(
+                f"[guard] BOOKING_READY ignorado: plan='{plan_recomendado_str}' "
+                f"no es CORPORATIVO. Convirtiendo a SST_READY. conv={conversation_id}"
+            )
+            tags["booking_ready"] = False
+            tags["sst_ready"] = True
+
         booking_trigger = (
             product_fit != "verifty_sst"
             and (
