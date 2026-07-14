@@ -1,0 +1,5 @@
+{
+  "tests/test_agent_prompt.py::TestFullSystemPrompt::test_tamano_razonable": true,
+  "tests/test_agent_prompt.py::TestSystemPromptBase::test_contiene_handoff_needed_tag": true,
+  "tests/test_agent_prompt.py::TestSystemPromptBase::test_contiene_send_quote_tag": true
+}

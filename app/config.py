@@ -11,7 +11,7 @@ class Settings:
     WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v18.0")
 
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-    ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5")
+    ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5")
 
     SUPABASE_URL = os.getenv("SUPABASE_URL", "")
     SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
@@ -19,7 +19,9 @@ class Settings:
     CRM_URL = os.getenv("CRM_URL", "https://crm.verifty.com")
     GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "")
 
-    QUALIFIED_SCORE_THRESHOLD = int(os.getenv("QUALIFIED_SCORE_THRESHOLD", "70"))
+    # Escala 0-15 del scorer: 8 = CALIFICADO (dispara agendamiento). El default viejo
+    # era 70 (escala 0-100 retirada) — con él NINGÚN lead calificaba jamás.
+    QUALIFIED_SCORE_THRESHOLD = int(os.getenv("QUALIFIED_SCORE_THRESHOLD", "8"))
     MAX_BOT_RETRIES = int(os.getenv("MAX_BOT_RETRIES", "2"))
     BOT_TIMEZONE = os.getenv("BOT_TIMEZONE", "America/Bogota")
 

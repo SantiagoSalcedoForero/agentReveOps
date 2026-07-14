@@ -27,6 +27,8 @@ def load_knowledge() -> str:
         "product/sst/purchase_flow.md",
         # VERA web — manual de asesora comercial y aprendizajes
         "vera/sales_advisor.md",
+        # Playbook destilado de 46 reuniones comerciales reales (jul-2026)
+        "ventas/playbook-ventas.md",
     ]
     for rel in files:
         p = KNOWLEDGE_ROOT / rel

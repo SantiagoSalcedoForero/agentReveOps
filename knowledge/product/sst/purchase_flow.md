@@ -61,7 +61,7 @@ Actualmente no. No se envía correo de confirmación de compra, activación ni r
 
 **No tiene flujo diferenciado.** No hay formulario de cotización ni página de contacto enterprise.
 
-Para leads Corporativo (más de 80 empleados, precio a la medida):
+Para leads Corporativo (más de 130 empleados, precio a la medida):
 - Redirigir a WhatsApp con el equipo comercial (usar [FLOW_LEAD] o [HANDOFF_NEEDED])
 - O dar el email directo: **hola@sst.verifty.com**
 - El precio es negociable según número real de empleados, módulos requeridos y multi-sede

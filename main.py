@@ -71,6 +71,10 @@ _conv_workers: dict[str, asyncio.Task] = {}
 # diferencia) pasen el check de BD antes de que el primero inserte.
 _recent_wa_ids: dict[str, float] = {}
 _DEDUP_TTL = 30.0  # segundos
+# Cooldown para medios no soportados (imagen, audio, etc.): solo el primer
+# mensaje por conversación en esta ventana dispara el agente.
+_unsupported_cooldown: dict[str, float] = {}
+_UNSUPPORTED_COOLDOWN_SECS = 300.0  # 5 minutos
 
 
 async def _conv_worker(conversation_id: str):
@@ -437,6 +441,19 @@ async def _ingest_message(msg: dict, wa_name: str | None):
         await whatsapp_client.mark_as_read(wa_message_id)
     except Exception:
         pass
+
+    # Medios no soportados (imagen, audio, video, etc.): solo el primer mensaje
+    # en la ventana de cooldown dispara el agente. Los siguientes se guardan en
+    # BD y se marcan como leídos pero no generan más respuestas del bot.
+    if msg_type not in ("text", "interactive", "button"):
+        import time as _time
+        last_ts = _unsupported_cooldown.get(conv["id"], 0.0)
+        if _time.monotonic() - last_ts < _UNSUPPORTED_COOLDOWN_SECS:
+            logger.info(
+                f"Unsupported media [{msg_type}] cooldown activo para {conv['id']}, skip enqueue"
+            )
+            return
+        _unsupported_cooldown[conv["id"]] = _time.monotonic()
 
     _enqueue(conv["id"], {
         "conversation_id": conv["id"],
