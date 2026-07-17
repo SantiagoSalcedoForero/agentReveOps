@@ -456,7 +456,9 @@ def adapt_bot_lead_to_spec_input(bot_data: dict) -> dict:
 
     return {
         "company_name": (
-            bot_data.get("company_name") or bot_data.get("empresa") or ""
+            # OJO: el agente emite la empresa como "company" en [LEAD_DATA] —
+            # sin este alias TODOS los leads caian en HS-1 (empresa vacia) y score 0
+            bot_data.get("company_name") or bot_data.get("company") or bot_data.get("empresa") or ""
         ),
         "email": bot_data.get("email") or "",
         "employees_range": (
