@@ -287,6 +287,58 @@ class CRMClient:
 
     def update_lead(self, lead_id: str, fields: dict) -> None:
         self.sb.table("leads").update(fields).eq("id", lead_id).execute()
+        # Anti-duplicados: si acabamos de aprender el EMAIL de este lead (creado por
+        # teléfono de WhatsApp) y ya existe OTRO lead con ese correo (creado por el
+        # formulario web de descargas), los fusionamos aquí mismo — el lead del bot
+        # (que tiene la conversación viva) absorbe al del formulario.
+        email = (fields.get("email") or "").strip().lower()
+        if email:
+            try:
+                self._merge_web_duplicate(lead_id, email)
+            except Exception as exc:  # nunca tumbar el flujo del bot por el merge
+                logger.warning(f"merge duplicado por email falló: {exc}")
+
+    _MERGE_FIELDS = (
+        "first_name", "last_name", "company_name", "numero_trabajadores",
+        "nivel_riesgo_arl", "sector", "industry", "city", "country",
+        "professional_role", "main_need", "utm_source", "utm_medium",
+        "utm_campaign", "detected_source", "created_via_form", "created_via_url",
+        "score", "lead_classification", "score_breakdown", "assigned_to",
+    )
+
+    def _merge_web_duplicate(self, lead_id: str, email: str) -> None:
+        r = (
+            self.sb.table("leads").select("*")
+            .ilike("email", email).neq("id", lead_id)
+            .is_("deleted_at", "null").limit(1).execute()
+        )
+        if not r.data:
+            return
+        dup = r.data[0]
+        cur_r = self.sb.table("leads").select("*").eq("id", lead_id).limit(1).execute()
+        cur = cur_r.data[0] if cur_r.data else {}
+        patch = {
+            k: dup[k] for k in self._MERGE_FIELDS
+            if not cur.get(k) and dup.get(k) not in (None, "", 0)
+        }
+        if patch:
+            self.sb.table("leads").update(patch).eq("id", lead_id).execute()
+        for tabla in ("activities", "deal_leads", "whatsapp_conversations", "calendar_events"):
+            try:
+                self.sb.table(tabla).update({"lead_id": lead_id}).eq("lead_id", dup["id"]).execute()
+            except Exception:
+                pass
+        now = datetime.now(timezone.utc).isoformat()
+        self.sb.table("activities").insert({
+            "activity_type": "note",
+            "lead_id": lead_id,
+            "title": f"Lead duplicado fusionado automáticamente (fuente {dup.get('source')})",
+            "description": f"El bot detectó el mismo email {email} en un lead del formulario web y los fusionó.",
+            "is_bot_activity": True,
+            "occurred_at": now,
+        }).execute()
+        self.sb.table("leads").update({"deleted_at": now}).eq("id", dup["id"]).execute()
+        logger.info(f"lead duplicado {dup['id'][:8]} fusionado en {lead_id[:8]} por email {email}")
 
     def get_lead(self, lead_id: str) -> Optional[dict]:
         r = (
