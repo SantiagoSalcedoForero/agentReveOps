@@ -247,24 +247,35 @@ async def initiate_chat(
     template = template_name or "verifty_agent_outreach"
     lead_data = {"name": name, "phone": phone}
 
+    # Variable de la plantilla según lo aprobado en Meta:
+    # - verifty_agent_outreach → nombre del AGENTE ("soy X de Verifty")
+    # - verifty_outbound_lead / demo_nudge / sst_followup → nombre del LEAD
+    AGENT_NAME_TEMPLATES = {"verifty_agent_outreach"}
+    lead_first_name = (name or "").split(" ")[0] or "hola"
+    param = agent_name if template in AGENT_NAME_TEMPLATES else lead_first_name
+
     conv_id = await start_outbound_conversation(
         phone=phone,
         lead_data=lead_data,
         source_form="crm_initiated",
         template_name=template,
-        template_params=[agent_name],
+        template_params=[param],
     )
     if not conv_id:
         raise RuntimeError("Could not send WhatsApp template")
 
-    update = {
-        "chat_status": "agent_active",
-        "status": "human_active",
-    }
+    # Solo el outreach de un agente humano pasa el chat a humano; en el resto
+    # (campañas / outbound del bot) la conversación queda con el BOT para que
+    # Vera responda cuando el lead conteste.
+    update: dict = {}
+    if template in AGENT_NAME_TEMPLATES:
+        update["chat_status"] = "agent_active"
+        update["status"] = "human_active"
     if agent_profile_id:
         update["assigned_profile_id"] = agent_profile_id
 
-    crm.update_conversation(conv_id, update)
+    if update:
+        crm.update_conversation(conv_id, update)
 
     return {
         "status": "initiated",
