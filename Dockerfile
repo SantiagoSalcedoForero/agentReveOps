@@ -20,4 +20,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -fsS http://localhost:8000/health || exit 1
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--log-level", "info"]
+# 1 worker: los loops de fondo (nudges/follow-ups/recordatorios) se lanzan en el
+# startup de CADA proceso. Con >1 worker cada loop corre N veces y sin lock →
+# mensajes duplicados y conversaciones duplicadas. FastAPI async aguanta la carga.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--log-level", "info"]
