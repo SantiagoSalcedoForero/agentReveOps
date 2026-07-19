@@ -606,8 +606,9 @@ class ConversationalAgent:
             raw_parts: list[str] = []
             tool_use_blocks: list[Any] = []
             for block in (resp.content or []):
-                if hasattr(block, "text"):
-                    raw_parts.append(block.text)
+                txt = getattr(block, "text", None)
+                if isinstance(txt, str):
+                    raw_parts.append(txt)
                 elif hasattr(block, "name"):
                     tool_use_blocks.append(block)
             raw = "\n".join(raw_parts)
