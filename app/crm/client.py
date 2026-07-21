@@ -192,25 +192,25 @@ class CRMClient:
         wa_name: str | None,
         attribution: dict | None = None,
     ) -> dict:
-        existing = (
-            self.sb.table("leads")
-            .select("*")
-            .eq("phone", phone)
-            .limit(1)
-            .execute()
-        )
-        if existing.data:
-            return existing.data[0]
-        # Fallback: algunos leads fueron guardados con '+' como prefijo
-        existing_plus = (
-            self.sb.table("leads")
-            .select("*")
-            .eq("phone", "+" + phone)
-            .limit(1)
-            .execute()
-        )
-        if existing_plus.data:
-            return existing_plus.data[0]
+        # Buscar por phone_normalized (dígitos) — robusto al formato +/sin '+' y es
+        # el MISMO criterio que usa el trigger de dedup de la tabla. Evita no
+        # encontrar leads existentes (que causaba duplicados y el crash del insert).
+        digits = "".join(ch for ch in phone if ch.isdigit())
+        if digits:
+            by_norm = (
+                self.sb.table("leads")
+                .select("*")
+                .eq("phone_normalized", digits)
+                .limit(1)
+                .execute()
+            )
+            if by_norm.data:
+                return by_norm.data[0]
+        # Fallbacks exactos por si phone_normalized no estuviera poblado
+        for candidate in (phone, "+" + phone):
+            hit = self.sb.table("leads").select("*").eq("phone", candidate).limit(1).execute()
+            if hit.data:
+                return hit.data[0]
 
         first = (wa_name or "Lead WhatsApp").split(" ")[0]
         last_parts = (wa_name or "").split(" ")[1:]
@@ -281,9 +281,22 @@ class CRMClient:
                 if val:
                     row[key] = val
 
-        self.sb.table("leads").insert(row).execute()
-        fetched = self.sb.table("leads").select("*").eq("phone", phone).limit(1).execute()
-        return fetched.data[0]
+        inserted = self.sb.table("leads").insert(row).execute()
+        if inserted.data:
+            return inserted.data[0]
+        # El trigger de dedup bloqueó el insert (el lead ya existe con otro formato):
+        # recuperarlo por phone_normalized o formato exacto en vez de reventar.
+        if digits:
+            by_norm = (
+                self.sb.table("leads").select("*").eq("phone_normalized", digits).limit(1).execute()
+            )
+            if by_norm.data:
+                return by_norm.data[0]
+        for candidate in (phone, "+" + phone):
+            hit = self.sb.table("leads").select("*").eq("phone", candidate).limit(1).execute()
+            if hit.data:
+                return hit.data[0]
+        raise RuntimeError(f"no se pudo obtener/crear el lead para phone={phone}")
 
     def update_lead(self, lead_id: str, fields: dict) -> None:
         self.sb.table("leads").update(fields).eq("id", lead_id).execute()
