@@ -631,6 +631,25 @@ class ConversationalAgent:
                 ),
             })
 
+        # Segmento de campaña: define QUÉ producto pitchear en el 2º mensaje.
+        seg = context_pre.get("campaign_segment") if isinstance(context_pre, dict) else None
+        PITCH_POR_SEGMENTO = {
+            "joyas_poc":   "Este lead viene de una campaña a EMPRESA ESTRATÉGICA (grande / con contratistas). Arranca ofreciendo la SUITE Verifty (Flow para contratistas y control de acceso + SST + Capacitaciones) y propón AGENDAR UNA LLAMADA / DEMO. NO ofrezcas prueba gratis self-service.",
+            "tibios":      "Este lead viene de una campaña de re-enganche a empresa mediana. Ofrece Verifty SST (y la suite si aplica) y propón una DEMO. Si detectas contratistas/control de acceso, es Flow → escala a demo.",
+            "frios":       "Este lead viene de una campaña a PYME (self-service). Arranca ofreciendo VERA con PRUEBA GRATIS de 3 días — que le arme su SG-SST solo. Cierra self-service con link.",
+            "consultores": "Este lead es un CONSULTOR / ASESOR SST. Ofrécele el PROGRAMA ALIADOS (verifty.com/partners) para que use Verifty con sus propios clientes PYME — no un plan para él, sino el programa de aliados.",
+        }
+        if seg and PITCH_POR_SEGMENTO.get(seg):
+            system_blocks.append({
+                "type": "text",
+                "text": (
+                    "ORIGEN DE CAMPAÑA DE ESTE LEAD:\n"
+                    + PITCH_POR_SEGMENTO[seg]
+                    + " Aterriza tu segundo mensaje (cuando el lead responda) en esto, "
+                    "de forma natural — no robótica."
+                ),
+            })
+
         usage_info: dict[str, Any] = {}
         try:
             t0 = time.perf_counter()

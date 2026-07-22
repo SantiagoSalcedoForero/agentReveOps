@@ -821,6 +821,7 @@ async def chat_initiate(request: Request):
     contact_id = body.get("contact_id")
     agent_profile_id = body.get("agent_profile_id")
     template_name = body.get("template_name")
+    campaign_segment = body.get("campaign_segment")  # joyas_poc | tibios | frios | consultores
     if not lead_id and not contact_id:
         raise HTTPException(400, "lead_id or contact_id required")
     try:
@@ -829,6 +830,7 @@ async def chat_initiate(request: Request):
             contact_id=contact_id,
             agent_profile_id=agent_profile_id,
             template_name=template_name,
+            campaign_segment=campaign_segment,
         )
         return result
     except ValueError as e:

@@ -206,6 +206,7 @@ async def initiate_chat(
     contact_id: Optional[str] = None,
     agent_profile_id: Optional[str] = None,
     template_name: Optional[str] = None,
+    campaign_segment: Optional[str] = None,  # joyas_poc | tibios | frios | consultores
 ) -> dict:
     """Abre un chat nuevo para un lead o contacto que no tiene historial WA."""
     phone = None
@@ -260,6 +261,8 @@ async def initiate_chat(
         source_form="crm_initiated",
         template_name=template,
         template_params=[param],
+        # Guarda el segmento de campaña para que el agente arme el 2º mensaje correcto.
+        context_extra={"campaign_segment": campaign_segment} if campaign_segment else None,
     )
     if not conv_id:
         raise RuntimeError("Could not send WhatsApp template")
