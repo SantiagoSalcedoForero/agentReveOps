@@ -81,91 +81,58 @@ class PlanVera:
 
 PLANES_BASE: list[PlanBase] = [
     PlanBase(
-        codigo="BASIC",
-        nombre="Basic",
-        precio_mensual_cop=39_000,
-        max_empleados_sin_acceso=3,
-        max_sedes=1,
-        max_cuentas=1,
-        almacenamiento_gb=0.25,
-        incluye_ipevr=False,
-        incluye_contratistas=False,
-        incluye_api_sso=False,
-        descripcion_corta="micro empresa (hasta 4 trabajadores)",
-        razon_eleccion=(
-            "te alcanza el Basic — hasta 4 trabajadores en total "
-            "(3 sin login + 1 con login), formularios e inspecciones de campo"
-        ),
-    ),
-    PlanBase(
-        codigo="STARTER",
-        nombre="Starter",
-        precio_mensual_cop=220_000,
-        max_empleados_sin_acceso=7,
-        max_sedes=1,
-        max_cuentas=3,
-        almacenamiento_gb=3,
+        codigo="EMPRENDE_IA",
+        nombre="Emprende IA",
+        precio_mensual_cop=250_000,
+        max_empleados_sin_acceso=25,
+        max_sedes=3,
+        max_cuentas=2,
+        almacenamiento_gb=5,
         incluye_ipevr=True,
         incluye_contratistas=False,
         incluye_api_sso=False,
-        descripcion_corta="pequeña empresa iniciando SG-SST (hasta 10 trabajadores)",
+        descripcion_corta="micro/pequeña con IA (hasta 27 trabajadores)",
         razon_eleccion=(
-            "el Starter te queda perfecto — hasta 10 trabajadores en total "
-            "(7 sin login + 3 con login), incluye matriz IPEVR GTC-45, "
-            "capacitaciones, accidentes y programas SST"
+            "el Emprende IA te queda perfecto — hasta 27 trabajadores "
+            "(25 gestionados + 2 con acceso), y viene con VERA (la IA) que te "
+            "arma y mantiene todo el SG-SST, más todos los módulos SST y el plan "
+            "de emergencias. Puedes probarlo gratis 3 días"
         ),
     ),
     PlanBase(
-        codigo="PRO",
-        nombre="Pro",
-        precio_mensual_cop=600_000,
-        max_empleados_sin_acceso=30,
-        max_sedes=1,
-        max_cuentas=20,
-        almacenamiento_gb=15,
+        codigo="CRECE_IA",
+        nombre="Crece IA",
+        precio_mensual_cop=360_000,
+        max_empleados_sin_acceso=75,
+        max_sedes=5,
+        max_cuentas=4,
+        almacenamiento_gb=20,
         incluye_ipevr=True,
         incluye_contratistas=False,
         incluye_api_sso=False,
-        descripcion_corta="mediana empresa con SG-SST formal (hasta 50 trabajadores)",
+        descripcion_corta="pequeña/mediana con IA (hasta 79 trabajadores)",
         razon_eleccion=(
-            "el Pro es el que te sirve — hasta 50 trabajadores en total "
-            "(30 sin login + 20 con login), salud ocupacional, "
-            "objetivos e indicadores SST y reportes ejecutivos para gerencia"
+            "el Crece IA es el que te sirve — hasta 79 trabajadores "
+            "(75 gestionados + 4 con acceso), con VERA incluida y más cupo de IA "
+            "para tu operación, 20 GB y 5 áreas. Puedes probarlo gratis 3 días"
         ),
     ),
     PlanBase(
-        codigo="PLUS",
-        nombre="Plus",
-        precio_mensual_cop=1_220_000,
-        max_empleados_sin_acceso=80,
-        max_sedes=10,
-        max_cuentas=50,
+        codigo="CONSOLIDA_IA",
+        nombre="Consolida IA",
+        precio_mensual_cop=880_000,
+        max_empleados_sin_acceso=200,
+        max_sedes=8,
+        max_cuentas=15,
         almacenamiento_gb=50,
         incluye_ipevr=True,
-        incluye_contratistas=True,
+        incluye_contratistas=False,
         incluye_api_sso=False,
-        descripcion_corta="multi-sede con contratistas (hasta 130 trabajadores)",
+        descripcion_corta="mediana con IA (hasta 215 trabajadores)",
         razon_eleccion=(
-            "el Plus es el adecuado — hasta 130 trabajadores en total "
-            "(80 sin login + 50 con login), multi-sede, contratistas, "
-            "auditorías ISO 45001 y requisitos legales"
-        ),
-    ),
-    PlanBase(
-        codigo="CORPORATIVO",
-        nombre="Corporativo",
-        precio_mensual_cop=None,
-        max_empleados_sin_acceso=None,
-        max_sedes=999,
-        max_cuentas=999,
-        almacenamiento_gb=999,
-        incluye_ipevr=True,
-        incluye_contratistas=True,
-        incluye_api_sso=True,
-        descripcion_corta="solución a la medida (trabajadores ilimitados)",
-        razon_eleccion=(
-            "esto se va a Corporativo — trabajadores ilimitados, API y SSO, "
-            "lo cotizamos a la medida con el equipo"
+            "el Consolida IA es el adecuado — hasta 215 trabajadores "
+            "(200 gestionados + 15 con acceso), VERA con el cupo máximo de IA, "
+            "50 GB y 8 áreas. Puedes probarlo gratis 3 días"
         ),
     ),
 ]
@@ -198,7 +165,7 @@ PLANES_VERA: list[PlanVera] = [
     ),
 ]
 
-DESCUENTO_ANUAL = 0.10  # 10% según sst.verifty.com/planes
+DESCUENTO_ANUAL = 0.05  # 5% anual (política actual)
 
 # ---------------------------------------------------------------------------
 # Módulos por plan — Modelo Híbrido C (M4)
@@ -210,87 +177,97 @@ DESCUENTO_ANUAL = 0.10  # 10% según sst.verifty.com/planes
 # ---------------------------------------------------------------------------
 
 MODULOS_POR_PLAN: dict[str, dict[str, list[str]]] = {
-    "BASIC": {
+    # Los 3 planes IA incluyen TODOS los módulos SST — se diferencian por
+    # capacidad (trabajadores, cupo de IA, almacenamiento, áreas), no por módulos.
+    "EMPRENDE_IA": {
         "incluye": [
             "Formularios y firmas digitales",
             "Planes de acción PHVA",
             "Inspecciones de campo con fotos",
             "Reportes de actos y condiciones inseguras",
-            "Gestor documental (250 MB)",
+            "Caminatas de seguridad",
+            "Gestor documental",
             "Cronograma SST",
             "EPP e inventario",
-        ],
-        "no_incluye": [
-            "Caminatas de seguridad",
             "Accidentes e incidentes (Res. 1401/2007)",
-            "Ausentismo e incapacidades",
+            "Ausentismo e incapacidades (CIE-10)",
             "Capacitaciones y plan anual",
             "Matriz IPEVR GTC-45",
             "Salud ocupacional y exámenes médicos",
-            "Objetivos e indicadores SST",
-            "Reportes ejecutivos para gerencia",
-            "Gestión de contratistas",
-            "Multi-sede",
+            "Objetivos e indicadores SST (Res. 0312/2019)",
+            "Programas SST (vigilancia epidemiológica)",
+            "Auditorías internas ISO 45001",
+            "Matriz de requisitos legales",
+            "Perfil sociodemográfico de la plantilla",
+            "Plan de emergencias",
+            "Autoevaluación 0312",
+            "Reportes ejecutivos y dashboard avanzado",
+            "VERA (IA) que arma y mantiene todo el SG-SST — INCLUIDA",
+        ],
+        "no_incluye": [
+            "Gestión de contratistas / control de acceso (eso es Verifty Flow — se ve en demo)",
+            "API para integraciones y SSO empresarial (Camino B / enterprise)",
         ],
     },
-    "STARTER": {
+    "CRECE_IA": {
         "incluye": [
+            "Formularios y firmas digitales",
+            "Planes de acción PHVA",
+            "Inspecciones de campo con fotos",
+            "Reportes de actos y condiciones inseguras",
             "Caminatas de seguridad",
+            "Gestor documental",
+            "Cronograma SST",
+            "EPP e inventario",
             "Accidentes e incidentes (Res. 1401/2007)",
             "Ausentismo e incapacidades (CIE-10)",
-            "Capacitaciones y plan anual automático",
-            "Perfil sociodemográfico de la plantilla",
-            "Matriz IPEVR GTC-45 (identificación de peligros)",
-            "Dashboard avanzado con alertas",
-        ],
-        "no_incluye": [
+            "Capacitaciones y plan anual",
+            "Matriz IPEVR GTC-45",
+            "Salud ocupacional y exámenes médicos",
+            "Objetivos e indicadores SST (Res. 0312/2019)",
             "Programas SST (vigilancia epidemiológica)",
-            "Salud ocupacional y exámenes médicos",
-            "Objetivos e indicadores SST (Res. 0312/2019)",
-            "Reportes ejecutivos para gerencia",
-            "Gestión de contratistas",
-            "Multi-sede",
-            "Auditorías internas ISO 45001",
-        ],
-    },
-    "PRO": {
-        "incluye": [
-            "Programas SST (vigilancia epidemiológica, EPP, emergencias)",
-            "Salud ocupacional y exámenes médicos",
-            "Objetivos e indicadores SST (Res. 0312/2019)",
-            "Reportes ejecutivos para gerencia",
-        ],
-        "no_incluye": [
-            "Multi-sede (hasta 10 centros de trabajo)",
-            "Gestión de contratistas",
             "Auditorías internas ISO 45001",
             "Matriz de requisitos legales",
-            "API para integraciones",
-            "SSO empresarial",
-        ],
-    },
-    "PLUS": {
-        "incluye": [
-            "Multi-sede (hasta 10 centros de trabajo)",
-            "Gestión de contratistas",
-            "Auditorías internas ISO 45001",
-            "Matriz de requisitos legales",
+            "Perfil sociodemográfico de la plantilla",
+            "Plan de emergencias",
+            "Autoevaluación 0312",
+            "Reportes ejecutivos y dashboard avanzado",
+            "VERA (IA) que arma y mantiene todo el SG-SST — INCLUIDA",
         ],
         "no_incluye": [
-            "Sedes y trabajadores ilimitados",
-            "API para integraciones",
-            "SSO empresarial",
-            "Soporte dedicado e implementación",
+            "Gestión de contratistas / control de acceso (eso es Verifty Flow — se ve en demo)",
+            "API para integraciones y SSO empresarial (Camino B / enterprise)",
         ],
     },
-    "CORPORATIVO": {
+    "CONSOLIDA_IA": {
         "incluye": [
-            "Sedes y trabajadores ilimitados",
-            "API para integraciones empresariales",
-            "SSO empresarial",
-            "Soporte dedicado e implementación",
+            "Formularios y firmas digitales",
+            "Planes de acción PHVA",
+            "Inspecciones de campo con fotos",
+            "Reportes de actos y condiciones inseguras",
+            "Caminatas de seguridad",
+            "Gestor documental",
+            "Cronograma SST",
+            "EPP e inventario",
+            "Accidentes e incidentes (Res. 1401/2007)",
+            "Ausentismo e incapacidades (CIE-10)",
+            "Capacitaciones y plan anual",
+            "Matriz IPEVR GTC-45",
+            "Salud ocupacional y exámenes médicos",
+            "Objetivos e indicadores SST (Res. 0312/2019)",
+            "Programas SST (vigilancia epidemiológica)",
+            "Auditorías internas ISO 45001",
+            "Matriz de requisitos legales",
+            "Perfil sociodemográfico de la plantilla",
+            "Plan de emergencias",
+            "Autoevaluación 0312",
+            "Reportes ejecutivos y dashboard avanzado",
+            "VERA (IA) que arma y mantiene todo el SG-SST — INCLUIDA",
         ],
-        "no_incluye": [],
+        "no_incluye": [
+            "Gestión de contratistas / control de acceso (eso es Verifty Flow — se ve en demo)",
+            "API para integraciones y SSO empresarial (Camino B / enterprise)",
+        ],
     },
 }
 
@@ -385,8 +362,9 @@ def recomendar_plan_base(
 
 
 def debe_agendar_demo(plan: PlanBase) -> bool:
-    """True solo para CORPORATIVO. El resto se cierra vía deep link de compra self-serve."""
-    return plan.codigo == "CORPORATIVO"
+    """Los 3 planes IA se cierran self-serve. La demo (Camino B) es para >215
+    trabajadores o contratistas/Flow — eso se maneja en agent.py, no acá."""
+    return False
 
 
 def deep_link_compra(
@@ -395,15 +373,12 @@ def deep_link_compra(
     lead_id: Optional[str] = None,
     nueva_empresa: bool = True,
 ) -> str:
-    """Construye la URL de cierre de venta para un plan SST.
+    """Construye la URL de cierre de venta para un plan SST con IA.
 
-    Para CORPORATIVO devuelve mailto (no hay self-serve).
-    Para el resto: https://sst.verifty.com/agregar-vera con query params:
-      plan, ciclo, nueva (1/0), lead_id (solo si se pasa).
+    Va DIRECTO a /pagar (no a /agregar-vera): los planes IA ya traen VERA
+    incluida, y /pagar muestra el botón de PRUEBA GRATIS de 3 días.
+    Query params: plan, ciclo (mensual/anual), nueva (1/0), lead_id (opcional).
     """
-    if plan.codigo == "CORPORATIVO":
-        return "mailto:hola@sst.verifty.com"
-
     params: list[tuple[str, str]] = [
         ("plan",   plan.codigo),
         ("ciclo",  ciclo.value),
@@ -413,7 +388,7 @@ def deep_link_compra(
         params.append(("lead_id", lead_id))
 
     qs = "&".join(f"{k}={v}" for k, v in params)
-    return f"https://sst.verifty.com/agregar-vera?{qs}"
+    return f"https://sst.verifty.com/pagar?{qs}"
 
 
 def prompt_inyectable() -> str:
@@ -427,7 +402,7 @@ def prompt_inyectable() -> str:
         "CATÁLOGO VERIFTY SST — FUENTE ÚNICA DE PRECIOS Y PLANES",
         "═══════════════════════════════════════════════════════════",
         "",
-        "PLANES BASE (compra directa en sst.verifty.com/agregar-vera)",
+        "PLANES BASE (compra directa en sst.verifty.com/pagar — con prueba gratis 3 días)",
         "─────────────────────────────────────────────────────────────",
     ]
 

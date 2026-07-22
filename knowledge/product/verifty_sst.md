@@ -1,3 +1,5 @@
+> ⚠️ PLANES OBSOLETOS EN ESTE DOC: Verifty SST hoy solo tiene Emprende IA / Crece IA / Consolida IA (VERA incluida + prueba gratis 3 días). Ignora cualquier mención de Basic/Starter/Pro/Plus/Corporativo o VERA como add-on. Fuente de verdad: product/icp.md.
+
 # Verifty SST — Software Administrativo SG-SST
 
 ## ¿Qué es?

@@ -1,102 +1,45 @@
-# Perfil de Cliente Ideal (ICP)
+# Perfil de Cliente Ideal (ICP) — QUÉ VENDE VERIFTY Y A QUIÉN
 
-## REGLA MAESTRA DE SEGMENTACIÓN
+> ⚠️ **FUENTE DE VERDAD DE PLANES.** Verifty SST hoy solo tiene 3 planes: **Emprende IA, Crece IA, Consolida IA** (todos con VERA incluida + prueba gratis 3 días). Si CUALQUIER otro documento menciona *Basic, Starter, Pro, Plus, Corporativo*, o VERA como add-on aparte, o precios distintos → **está OBSOLETO, ignóralo.** Usa SOLO lo de este documento.
 
-Verifty SST tiene planes para todos los tamaños: Basic (≤4), Starter (≤10), Pro (≤50),
-Plus (≤130), Corporativo (>130). El bot recomienda el plan correcto por número de trabajadores.
+## MATRIZ DE PRODUCTO × ICP (fuente única de verdad)
 
-| Perfil | Acción del bot |
-|--------|----------------|
-| Empresa 1-130 trabajadores buscando gestionar SG-SST | Calificar → recomendar plan → link de compra |
-| Consultor/especialista SST externo | Calificar → recomendar Pro mínimo → link de compra |
-| Empresa >130 trabajadores o foco en procesos operativos | Calificar → escalar_a_demo |
+| Producto | A quién (ICP) | Comprador | Cómo se vende |
+|----------|---------------|-----------|---------------|
+| **Verifty SST + VERA — Planes con IA** (Emprende/Crece/Consolida IA) | Micro/pequeña/mediana colombiana que necesita su SG-SST | Dueño o responsable SST | **Self-service con link + prueba gratis 3 días** (esto vende el bot) |
+| **Verifty Flow** | Empresa con **contratistas y control de acceso físico** (minería, construcción, energía, manufactura) | HSE / Operaciones | **Solo en reunión / demo** (Camino B) — nunca por chat |
+| **Verifty Capacitaciones** | Empresa con muchos empleados que gestiona formación a escala | SST / RRHH | **Solo en reunión / demo** (Camino B) |
+| **Micro-productos** (pases ATS/IPEVR/0312) | Practicante/asesor SST que bajó un formato del SEO | El mismo usuario | Self-service (link de pase) |
 
-## Matriz de calificación por tamaño
+**REGLA DE ORO:** el bot **solo cierra self-service los planes SST con IA**. Contratistas, control de acceso, permisos, capacitaciones enterprise → **agendar demo (Camino B), NO cotizar por chat**.
 
-| Tamaño empresa | Trabajadores | Estrategia bot |
-|----------------|-------------|----------------|
-| Micro | ≤4 | Recomendar BASIC |
-| Pequeña | 5-10 | Recomendar STARTER |
-| Mediana baja | 11-50 | Recomendar PRO |
-| Mediana alta | 51-130 | Recomendar PLUS |
-| Grande | >130 | Escalar a demo con equipo comercial |
+## LOS PLANES QUE VENDE EL BOT (SST con IA — TODOS traen VERA incluida + prueba gratis 3 días)
+
+| Plan | Trabajadores (total) | Con acceso | Precio/mes | Para quién |
+|------|---------------------|-----------|-----------|-----------|
+| **Emprende IA** | hasta 27 (25 gestionados + 2) | 2 | $250.000 | micro/pequeña |
+| **Crece IA** | hasta 79 (75 + 4) | 4 | $360.000 | pequeña/mediana |
+| **Consolida IA** | hasta 215 (200 + 15) | 15 | $880.000 | mediana |
+| **> 215 trabajadores** | — | — | a la medida | **Camino B: demo** |
+
+**VERA (la IA) viene incluida en los 3 planes** — arma y mantiene el SG-SST, es asesor de normatividad 24/7, y copiloto en cada módulo. **Prueba gratis 3 días con tarjeta, cancela cuando quiera** = el gancho de cierre.
+
+Recomendar por número de trabajadores totales: ≤27 → **Emprende IA** · ≤79 → **Crece IA** · ≤215 → **Consolida IA** · >215 → **demo**.
+
+## Cuándo escalar a DEMO (Camino B), no cerrar self-service
+- Empresa con **contratistas** que hay que verificar/controlar acceso → **Verifty Flow**.
+- Necesita **control de acceso físico / permisos de trabajo / portería** → **Flow**.
+- **Capacitaciones masivas** a gran escala → **Verifty Capacitaciones**.
+- **> 215 trabajadores** o pide **API/SSO/integraciones** (SAP, etc.).
+- Regla de negocio: empresa **>20 empleados + contratistas = convertir a reunión Flow sí o sí**.
 
 ## Sectores prioritarios (alta conversión histórica)
-
-1. **Construcción e infraestructura** — permisos de alturas, contratistas masivos
-2. **Energía** (hidroeléctricas, termoeléctricas, petróleo, gas) — ARL 5
-3. **Manufactura y farmacéutica** — sistemas integrados, auditorías
-4. **Logística y transporte** — contratistas, mercancía peligrosa (SISCOM)
-5. **Minería** — alto riesgo, documentación legal obligatoria
+Construcción, energía (hidro/termo/petróleo/gas, ARL 5), manufactura/farmacéutica, logística/transporte, minería.
 
 ## Clientes referencia (usar en el pitch)
-
-- **AES Colombia** (energía)
-- **CFC** (construcción)
-- **ECAR** (farmacéutica)
-- **Diabonos**
-- **Magnetron**
-- **Colgate-Palmolive** (manufactura)
-- **Cajasan** (mutualidad)
-- **Perflex** (pegantes)
-- **3 Castillos** (manufactura)
+AES Colombia (energía), CFC (construcción), ECAR (farmacéutica), Diabonos, Magnetron, Colgate-Palmolive (manufactura), 3 Castillos.
 
 ## Stakeholders de compra (quién decide)
-
-1. **Gerente HSEQ / SST** → dolor principal: auditorías, multas, accidentes
-2. **Gerente Operaciones / Planta** → dolor: parar producción por contratistas sin docs
-3. **Gerente TI** → dolor: integrar con SAP, ISODOC, herramientas existentes
-4. **Dueño / CEO empresa pequeña-mediana** → decisor directo
-
-Si el lead es **analista o coordinador SST**, tratar con respeto pero detectar rápido si puede elevarlo al decisor. No cerrar con analistas sin decisor presente.
-
-## ICP — Verifty SST (ver también knowledge/product/verifty_sst.md)
-
-### Tipo A: Empresa pequeña (5–130 empleados)
-- Busca cumplir Res. 0312/2019, implementar SG-SST, llevar IPEVR, gestionar accidentes
-- Actualmente lo hace en Excel, papel o sin sistema
-- Tiene vigía SST o responsable SST sin herramienta
-
-### Tipo B: Profesional / Especialista SST
-- Consultor, asesor o profesional SST que gestiona sistemas de uno o varios clientes
-- Busca software para llevar los SG-SST de sus clientes de forma organizada
-- Señales: "soy especialista SST", "asesoro empresas en SST", "llevo el sistema de varios clientes"
-
-### Señales que identifican un lead SST
-- Menciona: SG-SST, COPASST, vigía SST, IPEVR, Res. 0312, accidente laboral, ausentismo
-- Empresa 5-130 empleados buscando "cumplir con SST" o "implementar el sistema"
-- Se presenta como profesional SST, asesor, coordinador o consultor SST
-
-## Segmentos a los que NO aplica ningún producto
-
-- Empresas < 5 empleados sin riesgo (no justifica inversión)
-- Empresas 100% administrativas sin operación de campo ni normativa SST relevante
-- Empresas con sistemas SST muy maduros que solo quieren integraciones puntuales (enfocarse en API)
-
-## Geografía (mercados atendidos)
-
-- **Colombia** (principal): SG-SST, Decreto 1072/2015, Res 0312/2019, ARL obligatoria
-- **Argentina**: Ley 19587, SRT, ART
-- **Perú**: Ley 29783, SUNAFIL, SCTR
-- **Chile**: Ley 16744, Mutuales
-- **México**: NOM-STPS, IMSS
-- **España**: Ley 31/1995 (LPRL), Mutuas
-
-Menciona la normativa local específica del país del lead para mostrar conocimiento.
-
-## Dolores ranqueados (frecuencia validada en campo)
-
-1. **ALTO**: Gestión manual de documentación de contratistas, permisos y procesos SST
-2. **ALTO**: Riesgo legal por contratistas sin documentos vigentes en planta
-3. **MEDIO**: Necesidad de SG-SST integral desde cero
-4. **MEDIO**: Digitalización de permisos de trabajo manuales
-5. **BAJO**: Falta de funcionalidad offline para operación en campo
-
-## Señales de calificación alta (lead hot)
-
-- Menciona auditoría próxima
-- Ya rechazó otras soluciones ("probé X y no funcionó")
-- Tiene contratistas con problemas documentales
-- Cambio de gerencia reciente (típicamente buscan digitalizar)
-- Accidente reciente en planta
-- Expansión (nuevas sedes) que exige estandarización
+1. **Dueño / CEO de PYME** → decisor directo → cierra self-service con prueba gratis.
+2. **Responsable / analista SST** → si es PYME, puede comprar; si es grande, detectar al decisor.
+3. **Gerente HSEQ / Operaciones** (empresas grandes con contratistas) → Flow, va a demo.

@@ -1,3 +1,5 @@
+> ⚠️ PLANES OBSOLETOS EN ESTE DOC: Verifty SST hoy solo tiene Emprende IA / Crece IA / Consolida IA (VERA incluida + prueba gratis 3 días). Ignora cualquier mención de Basic/Starter/Pro/Plus/Corporativo o VERA como add-on. Fuente de verdad: product/icp.md.
+
 # VERA — Manual de Asesora Comercial
 
 Este documento define cómo VERA debe comportarse como asesora comercial experta: qué preguntas hacer, cómo interpretar las respuestas, qué plan recomendar y cómo argumentarlo. VERA no muestra una tabla y ya — VERA diagnostica y recomienda con argumentos concretos.

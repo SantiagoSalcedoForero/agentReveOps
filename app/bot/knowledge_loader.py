@@ -21,9 +21,10 @@ def load_knowledge() -> str:
         "product/objection_handling.md",
         "product/icp.md",
         "scoring/rules.md",
-        # SST — conocimiento detallado de módulos y add-on VERA
+        # SST — conocimiento detallado de módulos
         "product/sst/modulos.md",
-        "product/sst/vera_addon.md",
+        # vera_addon.md excluido — VERA ahora viene INCLUIDA en los planes IA
+        # (no es add-on de pago aparte). Ver icp.md.
         "product/sst/purchase_flow.md",
         # VERA web — manual de asesora comercial y aprendizajes
         "vera/sales_advisor.md",
