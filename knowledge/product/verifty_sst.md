@@ -45,39 +45,26 @@ los módulos, responder preguntas normativas y apoyar la gestión del sistema.
 
 ## Planes disponibles — Precios COP/mes (Colombia)
 
-| Plan | Precio | Trabajadores totales | Desglose (sin login + con login) | Almacenamiento | Para quién |
-|------|--------|---------------------|----------------------------------|----------------|------------|
-| **BASIC** | $39.000 COP/mes | hasta 4 | 3 sin login + 1 con login | 250 MB | Micro empresa hasta 4 trabajadores |
-| **STARTER** | $220.000 COP/mes | hasta 10 | 7 sin login + 3 con login | 3 GB | Pequeña empresa hasta 10 trabajadores |
-| **PRO** ⭐ más popular | $600.000 COP/mes | hasta 50 | 30 sin login + 20 con login | 15 GB | Mediana empresa hasta 50 trabajadores |
-| **PLUS** | $1.220.000 COP/mes | hasta 130 | 80 sin login + 50 con login | 50 GB | Multi-sede o contratistas hasta 130 trabajadores |
-| **CORPORATIVO** | Precio personalizado | ilimitados | ilimitados | Ilimitado | Empresas 131+ trabajadores |
+**TODOS incluyen VERA (la IA) y PRUEBA GRATIS 3 días** (con tarjeta, cancela cuando quiera). VERA arma y mantiene el SG-SST. Los 3 planes incluyen **TODOS los módulos SST** — se diferencian por capacidad (trabajadores, cupo de IA, almacenamiento, áreas).
 
-### Cómo recomendar el plan según trabajadores totales
-- 1-4 trabajadores → BASIC ($39.000/mes) — primer paso de cumplimiento SST
-- 5-10 trabajadores → STARTER ($220.000/mes) — accidentes, ausentismo, capacitaciones e IPEVR (GTC-45)
-- 11-50 trabajadores → PRO ($600.000/mes) — el más popular, salud ocupacional, objetivos e indicadores y reportes para gerencia
-- 51-130 trabajadores → PLUS ($1.220.000/mes) — multi-sede, hasta 10 centros de trabajo, gestión de contratistas
-- 131+ trabajadores → CORPORATIVO — precio personalizado, API + SSO
+| Plan | Precio | Trabajadores totales | Con acceso | Almacenamiento | Para quién |
+|------|--------|---------------------|-----------|----------------|------------|
+| **Emprende IA** | $250.000/mes | hasta 27 (25 gestionados + 2) | 2 | 5 GB · 3 áreas | micro/pequeña |
+| **Crece IA** ⭐ | $360.000/mes | hasta 79 (75 + 4) | 4 | 20 GB · 5 áreas | pequeña/mediana |
+| **Consolida IA** | $880.000/mes | hasta 215 (200 + 15) | 15 | 50 GB · 8 áreas | mediana |
+| **> 215 trabajadores** | a la medida | ilimitado | — | — | demo (Camino B) |
 
-### Módulos por plan
-| Plan | Módulos incluidos |
-|------|-------------------|
-| **BASIC** | Empleados (hasta 3 sin login + 1 con login), EPP básico, Formularios, Planes de Acción, Inspecciones, Reportes actos/condiciones, Gestor Documental (250 MB), Cronograma |
-| **STARTER** | BASIC + Caminatas de seguridad, Accidentes e Incidentes, Ausentismo, Capacitaciones, Perfil Sociodemográfico, Importar Excel, Dashboard avanzado, Matriz IPEVR (GTC-45) |
-| **PRO** | STARTER + Programas SST, Salud Ocupacional y exámenes médicos, Objetivos e Indicadores SST, Reportes ejecutivos para gerencia |
-| **PLUS** | PRO + Auditorías internas (ISO 45001), Matriz de requisitos legales, Gestión de contratistas, hasta 10 centros de trabajo |
-| **CORPORATIVO** | Todo lo de PLUS + empleados y sedes ilimitados, API para integraciones, SSO empresarial, implementación y soporte dedicado |
+### Cómo recomendar por trabajadores totales
+- ≤27 → **Emprende IA** ($250.000/mes)
+- ≤79 → **Crece IA** ($360.000/mes)
+- ≤215 → **Consolida IA** ($880.000/mes)
+- >215, o con **contratistas / control de acceso** (Verifty Flow) → **demo (Camino B)**
 
-Ver planes completos en: **https://sst.verifty.com/planes**
+Ver planes en: **https://sst.verifty.com/planes** · la prueba gratis se activa en el checkout.
 
-### Pitch de cierre por tamaño de empresa
-- "Para tus 3 trabajadores, el plan Basic son $39.000/mes — menos que un café diario."
-- "Para tus 15 trabajadores, el plan PRO son $600.000/mes — tienes salud ocupacional, objetivos e indicadores, y reportes ejecutivos para gerencia en una sola plataforma."
-- "Con 60 trabajadores el PLUS es lo que necesitas — $1.220.000/mes con SG-SST completo, multi-sede y gestión de contratistas."
-- "Con 131+ trabajadores armamos una propuesta a la medida — pídeme que te conecte con el equipo."
+### Pitch de cierre
+"Para tus [N] trabajadores, el [plan] son $[precio]/mes con VERA incluida — y lo pruebas gratis 3 días sin compromiso. ¿Lo activamos?"
 
----
 
 ## VERA — IA Especialista en SST Colombia (complemento adicional)
 

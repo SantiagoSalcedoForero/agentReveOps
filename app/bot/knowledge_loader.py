@@ -27,7 +27,8 @@ def load_knowledge() -> str:
         # (no es add-on de pago aparte). Ver icp.md.
         "product/sst/purchase_flow.md",
         # VERA web — manual de asesora comercial y aprendizajes
-        "vera/sales_advisor.md",
+        # vera/sales_advisor.md excluido — estaba keyeado a los planes VIEJOS.
+        # Reescribir a planes IA y re-agregar. Fuente de verdad: product/icp.md.
         # Playbook destilado de 46 reuniones comerciales reales (jul-2026)
         "ventas/playbook-ventas.md",
     ]

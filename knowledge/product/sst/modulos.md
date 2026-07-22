@@ -6,7 +6,7 @@ Esta guía explica qué hace cada módulo, en qué plan está disponible, y cuá
 
 ---
 
-## MÓDULOS INCLUIDOS EN TODOS LOS PLANES (desde BASIC)
+## MÓDULOS SST — TODOS INCLUIDOS EN LOS 3 PLANES IA
 
 ### Empleados
 Central de gestión de la plantilla. Datos personales, laborales, roles SST, certificaciones (50h/20h), historial de cambios, cargos, áreas. Es el nodo central: todos los demás módulos referencian a los empleados.
@@ -34,7 +34,7 @@ Calendario de eventos SST: reuniones COPASST, simulacros, auditorías, jornadas 
 
 ---
 
-## MÓDULOS DESDE PLAN STARTER ($220.000/mes)
+## MÓDULOS SST (cont.) — incluidos en los 3 planes IA
 
 ### Accidentes e Incidentes
 Wizard de reporte paso a paso según Resolución 1401/2007. Equipo investigador con roles, análisis de causas raíz, lecciones aprendidas, notificación a ARL. Dashboard de accidentalidad del año.
@@ -63,7 +63,7 @@ Metodología GTC-45 completa. Evaluación de peligros por cargo con cálculo aut
 
 ---
 
-## MÓDULOS DESDE PLAN PRO ($600.000/mes)
+## MÓDULOS SST (cont.) — incluidos en los 3 planes IA
 
 ### Programas SST
 Gestión de programas permanentes: vigilancia epidemiológica, EPP, emergencias, inducción. Seguimiento PHVA (Planificar-Hacer-Verificar-Actuar). Actividades con responsable, fecha y evidencia.
@@ -83,7 +83,7 @@ Cronograma anual de actividades SST según Res. 0312/2019. Planificación mes a 
 
 ---
 
-## MÓDULOS DESDE PLAN PLUS ($1.220.000/mes)
+## MÓDULOS SST (cont.) — incluidos en los 3 planes IA
 
 ### Auditorías Internas (ISO 45001)
 Gestión de auditorías internas del SG-SST. Hallazgos, no conformidades, planes de mejora.
@@ -115,4 +115,4 @@ Cuando el lead menciona un accidente reciente: "¿Cómo lo reportaron? ¿Lo inve
 "¿Cuántas horas a la semana les toma mantener el SG-SST en Excel? Nuestros clientes que venían de Excel reducen ese tiempo un 70% en el primer mes."
 
 ### Flujo de "estamos en ARL clase IV o V" (ventas)
-"Con ese nivel de riesgo, la IPEVR es crítica y en ARL alta es de las primeras cosas que revisan en una visita. El Plan Starter (y superiores) incluyen el módulo GTC-45 con cálculo automático de NR."
+"Con ese nivel de riesgo, la IPEVR es crítica y en ARL alta es de las primeras cosas que revisan en una visita. Todos los planes IA incluyen el módulo GTC-45 con cálculo automático de NR."

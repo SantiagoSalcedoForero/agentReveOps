@@ -15,17 +15,13 @@ Flujo técnico:
 
 Si hay algún problema técnico con MP: el sistema muestra un fallback con el email **hola@sst.verifty.com** para pago manual.
 
-## Plan gratuito permanente (FREE)
+## Prueba gratis de 3 días (el gancho de arranque)
 
-Existe un plan FREE real, sin costo y sin vencimiento:
-- Hasta 5 empleados
-- 1 usuario con acceso
-- Módulos básicos limitados
-- 300 MB de almacenamiento
+Todos los planes IA traen **prueba gratis de 3 días** con VERA incluida: el lead
+prueba el sistema completo y VERA arma su SG-SST. Se registra con **tarjeta**, no
+se le cobra durante los 3 días, y **cancela cuando quiera**. Al terminar, se activa
+el plan que eligió (desde $250.000/mes, Emprende IA). No hay plan gratuito permanente.
 
-**No es un trial** — la empresa puede quedarse en FREE indefinidamente. Sirve para empresas muy pequeñas que arrancan, pero rápidamente quedan limitadas al crecer.
-
-Cuando presentar el FREE: si el lead tiene 1-4 empleados y quiere "probar antes de pagar". Aclarar que a partir del 5° empleado necesita el plan Basic.
 
 ## Descuentos
 
@@ -59,11 +55,11 @@ Actualmente no. No se envía correo de confirmación de compra, activación ni r
 - **Vencimiento**: un proceso diario revisa suscripciones vencidas y las marca. Si VERA IA también venció, se desactiva por separado.
 - **Cancelación**: requiere contactar a Verifty o ir directamente a Mercado Pago para cancelar la suscripción recurrente. No hay botón de cancelación en la interfaz del usuario actualmente.
 
-## Plan Corporativo
+## Empresas grandes (>215 trabajadores) o con contratistas
 
 **No tiene flujo diferenciado.** No hay formulario de cotización ni página de contacto enterprise.
 
-Para leads Corporativo (más de 130 empleados, precio a la medida):
+Para empresas de más de 215 trabajadores, o que necesitan contratistas/control de acceso (Verifty Flow): se agenda demo (Camino B), no se cierra self-service.
 - Redirigir a WhatsApp con el equipo comercial (usar [FLOW_LEAD] o [HANDOFF_NEEDED])
 - O dar el email directo: **hola@sst.verifty.com**
 - El precio es negociable según número real de empleados, módulos requeridos y multi-sede
@@ -71,7 +67,7 @@ Para leads Corporativo (más de 130 empleados, precio a la medida):
 ## Argumentos para objeciones de compra
 
 **"¿Puedo probar antes de pagar?"**
-→ Sí: el plan FREE es gratuito y permanente. Tienen acceso real a la plataforma con hasta 5 empleados. Si tienen más, arrancamos con Basic que son $39.000/mes — menos que un almuerzo para dos personas.
+→ Sí: hay PRUEBA GRATIS de 3 días con VERA incluida. Prueban el sistema completo y solo se les cobra al terminar (con tarjeta, cancelan cuando quieran). Los planes arrancan en $250.000/mes (Emprende IA).
 
 **"¿Es seguro pagar por Mercado Pago?"**
 → Mercado Pago es la pasarela más usada en Colombia y Latinoamérica. Acepta tarjetas débito/crédito de todos los bancos, PSE vía MP, y tiene protección al comprador. Verifty nunca ve ni guarda datos de tarjeta — todo va directo a MP.
