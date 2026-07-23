@@ -319,6 +319,13 @@ class ConversationalAgent:
         if not slots:
             return None
         t = message_text.lower().strip()
+        # 1) Por número: "1", "2", "el 3", "opción 2"… (así se ofrecen ahora los slots)
+        mnum = re.search(r"\b([1-9])\b", t)
+        if mnum:
+            idx = int(mnum.group(1)) - 1
+            if 0 <= idx < len(slots):
+                return slots[idx]
+        # 2) Por etiqueta (ej. "jue 12:00pm") — compatibilidad con el formato viejo
         labels = meeting_scheduler.format_slots_for_whatsapp(slots)
         for slot, label in zip(slots, labels):
             if label.lower() in t or t in label.lower():
@@ -347,14 +354,17 @@ class ConversationalAgent:
                 return False
             labels = meeting_scheduler.format_slots_for_whatsapp(slots)
             context["pending_slots"] = slots
-            if intro_text:
-                await whatsapp_client.send_text(phone, intro_text)
-                crm.save_message(conversation_id, "outbound", intro_text)
-            await whatsapp_client.send_interactive_buttons(
-                phone,
-                "¿Cuál horario te queda mejor?",
-                labels,
+            # Los horarios se envían como TEXTO NUMERADO, no como botones interactivos
+            # de WhatsApp: esos botones fallan seguido (límite de 20 chars, formato) y
+            # dejaban al lead viendo "elige" sin nada que elegir. El texto nunca falla.
+            opciones = "\n".join(f"{i + 1}) {label}" for i, label in enumerate(labels))
+            cuerpo = (
+                (f"{intro_text}\n\n" if intro_text else "")
+                + opciones
+                + "\n\nResponde con el número del horario que prefieras (por ejemplo: 1)."
             )
+            await whatsapp_client.send_text(phone, cuerpo)
+            crm.save_message(conversation_id, "outbound", cuerpo)
             crm.update_conversation(
                 conversation_id,
                 {"status": "booking_offered", "context": context},
