@@ -22,19 +22,33 @@ import time
 
 logger = get_logger(__name__)
 
+# Detección de "el lead quiere un humano". OJO: NO usar palabras sueltas como
+# "persona", "asesor", "comercial", "agente"… porque el lead las usa para
+# describir SU cargo ("soy la persona encargada de SST", "soy asesor de seguros")
+# y disparaban un handoff falso que quemaba leads calificados. Aquí exigimos
+# INTENCIÓN de pedir un humano: un verbo de solicitud + una palabra de "humano".
+_HUMANO = (
+    r"(?:humano|asesor|asesora|agente|vendedor|vendedora|representante|"
+    r"ejecutiv[oa]|comercial|alguien|persona real|ser humano)"
+)
 HANDOFF_KEYWORDS = [
-    r"\bhumano\b",
-    r"\bpersona\b",
-    r"\bvendedor\b",
-    r"\basesor\b",
-    r"hablar con alguien",
-    r"\bagente\b",
-    r"\brepresentante\b",
-    r"\bejecutivo\b",
-    r"\bcomercial\b",
-    r"quiero hablar",
-    r"pasame a",
-    r"p[aá]same con",
+    # "hablar con un asesor / una persona / alguien"
+    rf"\bhabl\w*\s+con\s+(?:un[ao]?\s+|el\s+|la\s+|algun\w*\s+)?(?:{_HUMANO}|persona)\b",
+    # "pásame / conéctame / comunícame / deriva / conectar ... con un asesor / alguien"
+    rf"\b(?:p[aá]same|pasame|pasar\w*|con[eé]ct\w*|comun[ií]c\w*|comun[ií]qu\w*|"
+    rf"transf[ie]r\w*|deriv\w*|contact\w*)\s+(?:con\s+)?"
+    rf"(?:un[ao]?\s+|el\s+|la\s+|algun\w*\s+)?(?:{_HUMANO}|persona)\b",
+    # "quiero / necesito / puedo (hablar con) un asesor / humano"
+    rf"\b(?:quiero|quisiera|necesito|me gustar[ií]a|puedo|podr[ií]a)\s+"
+    rf"(?:hablar\s+con\s+|un[ao]?\s+|una\s+)?(?:{_HUMANO})\b",
+    # expresiones fijas fuertes que no dependen de contexto
+    r"\bhablar con alguien\b",
+    r"\bun humano\b",
+    r"\bser humano\b",
+    r"\bpersona real\b",
+    r"\batenci[oó]n humana\b",
+    r"\bagente humano\b",
+    r"\basesor humano\b",
 ]
 
 SST_PURCHASE_URL = "https://sst.verifty.com/planes"
