@@ -17,6 +17,13 @@ class CRMClient:
             self.sb = create_client(
                 settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY
             )
+            # Nuestro PostgREST propio (Aurora) sirve en la raíz, sin el prefijo
+            # /rest/v1 que supabase-py agrega. Se lo quitamos a la sesión.
+            try:
+                import httpx as _httpx
+                self.sb.postgrest.session.base_url = _httpx.URL(settings.SUPABASE_URL)
+            except Exception:
+                logger.warning("No se pudo ajustar la base_url del postgrest")
 
     # ---------- Conversations ----------
     def _hydrate_conv(self, row: dict) -> dict:
