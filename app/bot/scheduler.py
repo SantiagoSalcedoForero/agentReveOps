@@ -22,33 +22,33 @@ class MeetingScheduler:
     def __init__(self):
         self.tz = pytz.timezone(settings.BOT_TIMEZONE)
 
-    # --------- Google OAuth token management (per user in auth.users) ---------
+    # --------- Google OAuth token management (per user in google_tokens) ---------
     async def _get_user_google_token(self, user_id: str) -> Optional[str]:
-        """Fetch the user's Google access_token from auth.users.user_metadata.
-        Refresh if expired and GOOGLE_CLIENT_ID/SECRET are configured.
+        """Lee el access_token de Google desde public.google_tokens (OAuth propio
+        del CRM post-Aurora; GoTrue ya no existe). Refresca con el refresh_token
+        si expiró y persiste el token nuevo en la misma tabla.
         """
-        url = f"{settings.SUPABASE_URL}/auth/v1/admin/users/{user_id}"
-        headers = {
-            "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
-            "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
-        }
+        if not crm.sb:
+            return None
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                r = await client.get(url, headers=headers)
-                if r.status_code >= 400:
-                    logger.error(f"get user {user_id}: {r.status_code}")
-                    return None
-                data = r.json()
+            r = (
+                crm.sb.table("google_tokens")
+                .select("access_token, refresh_token, expires_at")
+                .eq("profile_id", user_id)
+                .limit(1)
+                .execute()
+            )
+            rows = r.data or []
         except Exception as e:
-            logger.exception(f"admin/users fetch: {e}")
+            logger.exception(f"google_tokens fetch: {e}")
+            return None
+        if not rows:
             return None
 
-        meta = data.get("user_metadata") or {}
-        access = meta.get("google_access_token")
-        refresh = meta.get("google_refresh_token")
-        expires_at = meta.get("google_token_expires_at")
-        if not access:
-            return None
+        row = rows[0]
+        access = row.get("access_token")
+        refresh = row.get("refresh_token")
+        expires_at = row.get("expires_at")
 
         # Check expiry
         try:
@@ -63,7 +63,7 @@ class MeetingScheduler:
             exp_dt = None
 
         now_utc = datetime.now(timezone.utc)
-        if exp_dt and exp_dt > now_utc + timedelta(minutes=2):
+        if access and exp_dt and exp_dt > now_utc + timedelta(minutes=2):
             return access
 
         # Try to refresh
@@ -84,18 +84,17 @@ class MeetingScheduler:
                     new_access = tok.get("access_token")
                     expires_in = int(tok.get("expires_in", 3600))
                     new_exp = (now_utc + timedelta(seconds=expires_in)).isoformat()
-                    # Persist back to user_metadata
-                    new_meta = {
-                        **meta,
-                        "google_access_token": new_access,
-                        "google_token_expires_at": new_exp,
-                    }
-                    async with httpx.AsyncClient(timeout=15.0) as client:
-                        await client.put(
-                            url,
-                            headers={**headers, "Content-Type": "application/json"},
-                            json={"user_metadata": new_meta},
-                        )
+                    # Persistir el token nuevo en google_tokens
+                    try:
+                        crm.sb.table("google_tokens").update(
+                            {
+                                "access_token": new_access,
+                                "expires_at": new_exp,
+                                "updated_at": now_utc.isoformat(),
+                            }
+                        ).eq("profile_id", user_id).execute()
+                    except Exception as e:
+                        logger.warning(f"google_tokens persist: {e}")
                     return new_access
                 else:
                     logger.error(f"token refresh failed: {rr.status_code} {rr.text[:200]}")
