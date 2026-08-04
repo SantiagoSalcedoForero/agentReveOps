@@ -89,6 +89,18 @@ async def _conv_worker(conversation_id: str):
                 await agent.process_message(**payload)
             except Exception as e:
                 logger.exception(f"agent.process_message failed: {e}")
+                # Red de seguridad: un crash NO puede dejar al lead en silencio
+                # eterno (así se perdían ventas). Mejor pedirle que repita.
+                try:
+                    fallback = "Uy, se me trabó el sistema un segundo 🙈 ¿Me repites tu último mensaje?"
+                    await whatsapp_client.send_text(payload["phone"], fallback)
+                    crm.save_message(
+                        conversation_id=payload["conversation_id"],
+                        direction="outbound",
+                        body=fallback,
+                    )
+                except Exception:
+                    logger.exception("fallback tras crash también falló")
             q.task_done()
     finally:
         _conv_queues.pop(conversation_id, None)

@@ -677,9 +677,12 @@ class ConversationalAgent:
         usage_info: dict[str, Any] = {}
         try:
             t0 = time.perf_counter()
+            # 600 cortaba respuestas a mitad de frase y truncaba tool calls
+            # (visto 31-jul: 5 generaciones con out=600 exacto que nunca llegaron
+            # al lead). 1000 da margen; el costo solo paga el output real.
             resp = self.anthropic.messages.create(
                 model=settings.ANTHROPIC_MODEL,
-                max_tokens=600,
+                max_tokens=1000,
                 system=system_blocks,
                 messages=messages,
                 tools=TOOLS,
@@ -732,12 +735,23 @@ class ConversationalAgent:
                 )
             return
 
+        if getattr(resp, "stop_reason", None) == "max_tokens":
+            logger.warning(
+                f"[truncado] respuesta cortada por max_tokens conv={conversation_id} "
+                f"out={usage_info.get('output_tokens')}"
+            )
+
         clean, tags = self._parse_response(raw)
 
-        # Despachar tool calls (M3) — fusiona sobre los tags del texto
+        # Despachar tool calls (M3) — fusiona sobre los tags del texto.
+        # Blindado por tool: una excepción en un handler NO puede matar el turno —
+        # antes tumbaba todo el process_message y el lead quedaba SIN respuesta.
         for tc in tool_use_blocks:
-            tool_tags = dispatch_tool_use(tc.name, tc.input, context_pre)
-            tags.update(tool_tags)
+            try:
+                tool_tags = dispatch_tool_use(tc.name, tc.input, context_pre)
+                tags.update(tool_tags)
+            except Exception as e:
+                logger.exception(f"[dispatcher] tool {tc.name} falló, se ignora: {e}")
 
         logger.info(f"Bot tags for {conversation_id}: {tags}")
 
@@ -1048,7 +1062,15 @@ class ConversationalAgent:
             )
             return
 
-        # Flujo default: solo responder
+        # Flujo default: solo responder.
+        # Guardia anti-silencio: si el modelo produjo SOLO tags (texto vacío) y
+        # ninguna rama anterior respondió, antes no se enviaba NADA y el lead
+        # quedaba colgado. Mejor un puente genérico que el silencio.
+        if not clean and not tool_use_blocks and raw.strip():
+            logger.warning(
+                f"[silencio] respuesta sin texto visible conv={conversation_id} raw={raw[:150]!r}"
+            )
+            clean = "Sigo aquí 🙂 ¿Seguimos donde íbamos?"
         if clean:
             # M4.1 — validador modo monitoreo (loguea, no bloquea)
             palabras_malas = detectar_palabras_prohibidas(clean)
