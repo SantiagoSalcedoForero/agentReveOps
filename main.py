@@ -370,6 +370,11 @@ async def _ingest_message(msg: dict, wa_name: str | None):
 
     # Limpiar mensajes con UTMs embebidos del landing
     # Formato: "¡Hola! Vengo de verifty.com | URL: ... | utm_source: ..."
+    # OJO: `attribution` se construye MÁS ABAJO (_extract_attribution). Referenciarla
+    # aquí crasheaba el webhook (UnboundLocalError) y el lead del landing quedaba
+    # SIN respuesta — justo el lead más caliente. Los UTMs del landing se acumulan
+    # en landing_attr y se fusionan después (ganan sobre los inferidos).
+    landing_attr: dict[str, str] = {}
     if "verifty.com" in text and "utm_source" in text.lower():
         import re as _re
         # Extraer UTMs del texto antes de limpiar
@@ -378,15 +383,13 @@ async def _ingest_message(msg: dict, wa_name: str | None):
             key, val = match.group(1).lower(), match.group(2)
             utm_parts[key] = val
         if utm_parts:
-            if not attribution:
-                attribution = {}
-            attribution.update({
+            landing_attr = {k: v for k, v in {
                 "utm_source": utm_parts.get("utm_source"),
                 "utm_medium": utm_parts.get("utm_medium"),
                 "utm_campaign": utm_parts.get("utm_campaign"),
                 "first_page_url": utm_parts.get("url"),
                 "conversion_trigger": "wa_link_landing",
-            })
+            }.items() if v}
         # Limpiar el texto: quitar todo después del primer "|"
         clean_text = text.split("|")[0].strip()
         if clean_text:
@@ -419,6 +422,8 @@ async def _ingest_message(msg: dict, wa_name: str | None):
         return
 
     attribution = _extract_attribution(msg, text)
+    if landing_attr:
+        attribution.update(landing_attr)  # los UTMs explícitos del landing mandan
     if attribution:
         logger.info(f"Lead attribution [{phone}]: {attribution}")
     conv = crm.get_or_create_conversation(phone, wa_name, attribution=attribution)
