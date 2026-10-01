@@ -261,8 +261,37 @@ async def receive_webhook(request: Request, background_tasks: BackgroundTasks):
     return {"status": "received"}
 
 
+async def _forward_statuses_to_flow(body: dict) -> None:
+    """Reenvía a la app de Verifty los eventos de ESTADO (statuses) tal cual.
+
+    Meta solo admite un webhook por app, y esta app la comparten el bot y el
+    motor de Flow. Los estados de entrega de los mensajes del motor caían aquí
+    y se botaban: nadie podía saber si un WhatsApp llegó (ECAR, 01-oct-2026).
+    Solo se reenvía si el payload trae statuses; los mensajes entrantes no.
+    """
+    url = settings.FLOW_STATUS_FORWARD_URL
+    if not url:
+        return
+    tiene_statuses = any(
+        (change.get("value") or {}).get("statuses")
+        for entry in body.get("entry", [])
+        for change in entry.get("changes", [])
+    )
+    if not tiene_statuses:
+        return
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.post(url, json=body)
+            if r.status_code >= 300:
+                logger.warning(f"Forward statuses a Flow respondió {r.status_code}")
+    except Exception as e:  # nunca tumbar el webhook por esto
+        logger.warning(f"Forward statuses a Flow falló: {e}")
+
+
 async def _handle_webhook_payload(body: dict):
     try:
+        await _forward_statuses_to_flow(body)
         for entry in body.get("entry", []):
             for change in entry.get("changes", []):
                 value = change.get("value", {})

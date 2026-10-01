@@ -9,6 +9,13 @@ class Settings:
     WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
     WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
     WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v18.0")
+    # Los estados de entrega (sent/delivered/read/failed) de los mensajes que
+    # manda el MOTOR de Flow llegan a este mismo webhook (misma app y línea de
+    # Meta). El bot no los usa; se reenvían a la app para que la ficha de la
+    # persona diga si el WhatsApp llegó (ECAR, 01-oct-2026). Vacío = no reenviar.
+    FLOW_STATUS_FORWARD_URL = os.getenv(
+        "FLOW_STATUS_FORWARD_URL", "https://sst.verifty.com/api/webhooks/meta-whatsapp"
+    )
 
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
     ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5")
