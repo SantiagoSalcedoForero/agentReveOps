@@ -20,6 +20,10 @@ from app.outbound.quote import send_quote_email
 from app.logger import get_logger
 import time
 
+# Techo de salida por respuesta y del único reintento si aun así se corta.
+MAX_TOKENS_RESPUESTA = 4000
+MAX_TOKENS_REINTENTO = 8000
+
 logger = get_logger(__name__)
 
 # Detección de "el lead quiere un humano". OJO: NO usar palabras sueltas como
@@ -679,14 +683,30 @@ class ConversationalAgent:
             t0 = time.perf_counter()
             # 600 cortaba respuestas a mitad de frase y truncaba tool calls
             # (visto 31-jul: 5 generaciones con out=600 exacto que nunca llegaron
-            # al lead). 1000 da margen; el costo solo paga el output real.
+            # al lead).
+            # 1000 tampoco alcanzó: el 06-oct-2026 4 de 42 respuestas salieron
+            # cortadas con out=1000 exacto, sin texto, y el lead quedó en
+            # silencio (Álvaro pidió reunión el viernes y nadie le contestó).
+            # El costo solo paga el output real: techo holgado y, si aun así se
+            # corta, un reintento con más.
             resp = self.anthropic.messages.create(
                 model=settings.ANTHROPIC_MODEL,
-                max_tokens=1000,
+                max_tokens=MAX_TOKENS_RESPUESTA,
                 system=system_blocks,
                 messages=messages,
                 tools=TOOLS,
             )
+            if getattr(resp, "stop_reason", None) == "max_tokens":
+                logger.warning(
+                    f"[truncado] reintento con {MAX_TOKENS_REINTENTO} conv={conversation_id}"
+                )
+                resp = self.anthropic.messages.create(
+                    model=settings.ANTHROPIC_MODEL,
+                    max_tokens=MAX_TOKENS_REINTENTO,
+                    system=system_blocks,
+                    messages=messages,
+                    tools=TOOLS,
+                )
             latency_ms = int((time.perf_counter() - t0) * 1000)
             # Extraer bloques de texto y tool calls del contenido mixto
             raw_parts: list[str] = []
@@ -1066,7 +1086,9 @@ class ConversationalAgent:
         # Guardia anti-silencio: si el modelo produjo SOLO tags (texto vacío) y
         # ninguna rama anterior respondió, antes no se enviaba NADA y el lead
         # quedaba colgado. Mejor un puente genérico que el silencio.
-        if not clean and not tool_use_blocks and raw.strip():
+        # Sin `raw.strip()`: cuando la respuesta se corta por max_tokens el texto
+        # llega VACÍO y esa condición dejaba al lead en silencio (06-oct-2026).
+        if not clean and not tool_use_blocks:
             logger.warning(
                 f"[silencio] respuesta sin texto visible conv={conversation_id} raw={raw[:150]!r}"
             )
